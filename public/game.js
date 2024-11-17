@@ -33,7 +33,7 @@ var app = new Vue({
         },
         login(){
             socket.emit('login',{
-                usernam:this.username,
+                username:this.username,
                 password:this.password
             })
         }
@@ -68,6 +68,7 @@ function connect() {
     socket.on('register_response',response =>{
         app.statusMessage=response;
     })
+
     
 
 
