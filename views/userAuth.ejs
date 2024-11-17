@@ -1,0 +1,20 @@
+<!-- User Authentication Section -->
+<div id="user-auth">
+<div class="input-container">
+    <label for="name">Enter your name:</label>
+    <input type="text" id="name" placeholder="Your name" v-model="username">
+</div>
+
+<div class="input-container">
+    <label for="password">Enter your password:</label>
+    <input type="password" id="password" placeholder="Your password" v-model="password">
+</div>
+
+<div class="button-container">
+    <button @click="register">Register</button>
+    <button @click="login">Login</button>
+</div>
+
+<!-- Status message area -->
+<div id="status">{{ statusMessage }}</div>
+</div>

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+
+    <%- include('header'); -%>
+
+    <h2 class="title">ECS Example Game</h2>
+
+    <div id="game">
+        <div v-if="connected">
+            <%- include('chat'); -%>
+            <%- include('userAuth'); -%>
+        </div>
+        <div v-else>
+            <p>Connecting...</p>
+        </div>
+    </div>
+
+    <!-- Include footer content -->
+    <%- include('footer'); -%>
+
+</html>
