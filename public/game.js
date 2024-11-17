@@ -1,5 +1,3 @@
-const { response } = require("express");
-
 var socket = null;
 
 //Prepare game
@@ -7,15 +5,11 @@ var app = new Vue({
     el: '#game',
     data: {
         connected: false,
-        isUserAuth:false,
-        isWaiting:false,
-        isInGame:false,
         messages: [],
         chatmessage: '',
         username:'',
         password:'',
         statusMessage: '',
-        players:[],
     },
     mounted: function() {
         connect(); 
@@ -43,8 +37,6 @@ var app = new Vue({
                 password:this.password
             })
         }
-        
-        
     }
 });
 
@@ -73,15 +65,10 @@ function connect() {
     socket.on('chat', function(message) {
         app.handleChat(message);
     });
-
     socket.on('register_response',response =>{
         app.statusMessage=response;
     })
-
-    socket.on('to_waiting_room',response =>{
-        app.isUserAuth=false;
-        app.players=response;
-    })
+    
 
 
 }
