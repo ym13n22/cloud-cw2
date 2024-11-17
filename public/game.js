@@ -10,6 +10,8 @@ var app = new Vue({
         username:'',
         password:'',
         statusMessage: '',
+        hostName: "",
+        players: [],
     },
     mounted: function() {
         connect(); 

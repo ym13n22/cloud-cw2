@@ -1,0 +1,12 @@
+<div>
+    <!-- 房主名字 -->
+    <h2 v-if="hostName">Room Host: {{ hostName }}</h2>
+    
+    <!-- 加入的玩家 -->
+    <ul id="waiting-room">
+        <li v-for="player in players" :key="player.id">{{ player.name }}</li>
+    </ul>
+    
+    <!-- 游戏开始按钮 -->
+    <button @click="startGame" v-if="isHost" class="btn btn-primary">Game Start</button>
+</div>
