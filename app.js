@@ -8,6 +8,8 @@ const app = express();
 const https = require('https');
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
+const game_state_now="waiting";
+const players=[];
 
 //Setup static page handling
 app.set('view engine', 'ejs');
@@ -56,12 +58,16 @@ io.on('connection', socket => {
   socket.on('register', async registerDetails =>{
     console.log(`Register event with ${JSON.stringify(registerDetails)}`);
     try{
-      const response_message=await register(registerDetails);
+      const {response_message,username}=await register(registerDetails);
       console.log("Register message is:",response_message);
-      //if(response_message=="OK"&&game_state_now=="waiting"&&players.length<8){
-       // io.emit('register_response',response_message)
-       // waiting_room(username)
-      //}
+      console.log("username is: ",username)
+      if(response_message=="OK"&&game_state_now=="waiting"&&players.length<8){
+        players.push(username);
+        io.emit('register_response_OK',{
+          hostName:players[0],
+          players_now:players
+        });
+      }
       io.emit('register_response',response_message)
     }catch(error){
       console.error("Registration failed:", error);
@@ -71,8 +77,17 @@ io.on('connection', socket => {
   socket.on('login', async loginDetails =>{
     console.log(`Login event with ${JSON.stringify(loginDetails)}`);
     try{
-      const response_message=await login(loginDetails);
+      const {response_message,username}=await login(loginDetails);
       console.log("login message is:",response_message);
+      console.log("username is: ",username)
+      if(response_message=="OK"&&game_state_now=="waiting"&&players.length<8){
+        players.push(username);
+        console.log("players :",players);
+        io.emit('register_response_OK',{
+          hostName:players[0],
+          players_now:players
+        });
+      }
       io.emit('register_response',response_message)
     }catch(error){
       console.error("login failed:", error);
@@ -88,7 +103,7 @@ async function register(registerDetails) {
       try {
           const response = await handle_fatch("https://cw111.azurewebsites.net/api/player/register", username, password);
           console.log("response is:", response.msg);
-          return response.msg;
+          return { response_message: response.msg, username };
       } catch (error) {
         console.error("An error occurred during registration:",error);
       }
@@ -104,7 +119,7 @@ async function login(loginDetails) {
       try {
           const response = await sendGetRequestWithBody("https://cw111.azurewebsites.net/api/player/login", username, password);
           console.log("response is:", response.msg);
-          return response.msg;
+          return { response_message: response.msg, username };
       } catch (error) {
         console.error("An error occurred during login:",error);
       }
@@ -204,6 +219,8 @@ function sendGetRequestWithBody(endpoint, username, password) {
       req.end();
   });
 }
+
+
 
 
 //Start server

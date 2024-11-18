@@ -72,3 +72,33 @@ body {
     gap: 10px;
   }
 
+.host-container {
+    margin-bottom: 20px; /* 与按钮保持间距 */
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.players-list {
+    display: flex; /* 设置为 Flexbox 布局，使元素水平排列 */
+    flex-wrap: wrap; /* 当元素超出容器宽度时自动换行 */
+    list-style: none; /* 去掉默认的列表样式 */
+    padding: 0; /* 去掉默认的内边距 */
+    margin: 0; /* 去掉默认的外边距 */
+}
+
+.players-list li {
+    margin-right: 10px; /* 为每个列表项添加右边距 */
+    padding: 8px 16px; /* 给每个名字加上内边距 */
+    border: 2px solid #3498db; /* 给每个名字添加蓝色边框 */
+    border-radius: 12px; /* 设置圆角，使边框更圆滑 */
+    background-color: #ecf0f1; /* 给每个框添加背景色 */
+    font-size: 14px; /* 设置字体大小 */
+    color: #2c3e50; /* 设置字体颜色 */
+    white-space: nowrap; /* 确保每个 player 名字不会换行 */
+}
+.players-list li:hover {
+    background-color: #bdc3c7; /* 鼠标悬停时改变背景颜色 */
+}
+

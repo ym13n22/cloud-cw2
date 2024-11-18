@@ -5,12 +5,14 @@ var app = new Vue({
     el: '#game',
     data: {
         connected: false,
+        isInwaiting:false,
+        isAuth:false,
         messages: [],
         chatmessage: '',
         username:'',
         password:'',
         statusMessage: '',
-        hostName: "",
+        hostName: '',
         players: [],
     },
     mounted: function() {
@@ -38,6 +40,10 @@ var app = new Vue({
                 username:this.username,
                 password:this.password
             })
+        },
+        gameStart(){
+            this.isInwaiting=false;
+            socket.emit('gameStart')
         }
     }
 });
@@ -69,9 +75,12 @@ function connect() {
     });
     socket.on('register_response',response =>{
         app.statusMessage=response;
-    })
-
-    
-
-
+    });
+    socket.on('register_response_OK',response=>{
+        app.isInwaiting=true;
+        const {hostName,players_now}=response;
+        app.hostName=hostName;
+        app.players=players_now;
+        app.isAuth=false;
+    });
 }

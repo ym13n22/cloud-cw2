@@ -6,9 +6,12 @@
     <h2 class="title">ECS Example Game</h2>
 
     <div id="game">
-        <div v-if="connected">
+        <div v-if="connected && !isInwaiting">
             <%- include('chat'); -%>
             <%- include('userAuth'); -%>
+        </div>
+        <div v-else-if="connected && isInwaiting">
+            <%- include('waiting'); -%>
         </div>
         <div v-else>
             <p>Connecting...</p>
