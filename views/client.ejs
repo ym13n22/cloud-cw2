@@ -6,12 +6,15 @@
     <h2 class="title">ECS Example Game</h2>
 
     <div id="game">
-        <div v-if="connected && !isInwaiting">
+        <div v-if="connected && currentStage === 'Auth'">
             <%- include('chat'); -%>
             <%- include('userAuth'); -%>
         </div>
-        <div v-else-if="connected && isInwaiting">
+        <div v-else-if="connected && currentStage === 'Waiting'">
             <%- include('waiting'); -%>
+        </div>
+        <div v-else-if="connected && currentStage === 'PromptCollection'">
+            <p>is in prompt collection stage</p>
         </div>
         <div v-else>
             <p>Connecting...</p>

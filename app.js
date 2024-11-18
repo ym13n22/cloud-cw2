@@ -63,10 +63,21 @@ io.on('connection', socket => {
       console.log("username is: ",username)
       if(response_message=="OK"&&game_state_now=="waiting"&&players.length<8){
         players.push(username);
-        io.emit('register_response_OK',{
-          hostName:players[0],
-          players_now:players
-        });
+        if(players[0]==username){
+          io.emit('register_response_OK',{
+            hostName:players[0],
+            players_now:players,
+            isHost:true
+          });
+        }else{
+          io.emit('register_response_OK',{
+            hostName:players[0],
+            players_now:players,
+            isHost:false
+          });
+
+        }
+        
       }
       io.emit('register_response',response_message)
     }catch(error){
@@ -83,10 +94,20 @@ io.on('connection', socket => {
       if(response_message=="OK"&&game_state_now=="waiting"&&players.length<8){
         players.push(username);
         console.log("players :",players);
-        io.emit('register_response_OK',{
-          hostName:players[0],
-          players_now:players
-        });
+        if(players[0]==username){
+          io.emit('register_response_OK',{
+            hostName:players[0],
+            players_now:players,
+            isHost:true
+          });
+        }else{
+          io.emit('register_response_OK',{
+            hostName:players[0],
+            players_now:players,
+            isHost:false
+          });
+        }
+        
       }
       io.emit('register_response',response_message)
     }catch(error){
@@ -111,6 +132,8 @@ async function register(registerDetails) {
     return ("error")
   }
 }
+
+//////////////log in 的时候如果已经login如何处理
 async function login(loginDetails) {
   console.log("loginDetails:",loginDetails);
   const { username, password } = loginDetails;

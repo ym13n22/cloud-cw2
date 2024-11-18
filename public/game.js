@@ -1,19 +1,22 @@
 var socket = null;
 
+/////////////////不应该一个连接创造一个实例吗?????为什么分不开
 //Prepare game
 var app = new Vue({
     el: '#game',
     data: {
         connected: false,
-        isInwaiting:false,
-        isAuth:false,
+        currentStage:'Auth',
+        isHost:false,
         messages: [],
         chatmessage: '',
         username:'',
         password:'',
         statusMessage: '',
+        statusMessageGameStart:'',
         hostName: '',
         players: [],
+        
     },
     mounted: function() {
         connect(); 
@@ -42,8 +45,14 @@ var app = new Vue({
             })
         },
         gameStart(){
-            this.isInwaiting=false;
-            socket.emit('gameStart')
+            if(this.players.length<3){
+                this.statusMessageGameStart='number of players must over three';
+                this.currentStage='PromptCollection';//////////////////暂时的后面记得删@!!!!!!!!!!!
+            }
+            else{
+                this.currentStage='PromptCollection';
+            }
+            
         }
     }
 });
@@ -77,10 +86,10 @@ function connect() {
         app.statusMessage=response;
     });
     socket.on('register_response_OK',response=>{
-        app.isInwaiting=true;
-        const {hostName,players_now}=response;
+        app.currentStage='Waiting';
+        const {hostName,players_now,isHost}=response;
         app.hostName=hostName;
         app.players=players_now;
-        app.isAuth=false;
+        app.isHost=isHost;
     });
 }
