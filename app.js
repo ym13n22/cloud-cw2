@@ -62,25 +62,34 @@ io.on('connection', socket => {
       const {response_message,username}=await register(registerDetails);
       console.log("Register message is:",response_message);
       console.log("username is: ",username)
-      if(response_message=="OK"&&game_state_now=="waiting"&&players.length<8){
-        players.push(username);
-        if(players[0]==username){
-          io.emit('register_response_OK',{
-            hostName:players[0],
-            players_now:players,
-            isHost:true
-          });
-        }else{
-          io.emit('register_response_OK',{
-            hostName:players[0],
-            players_now:players,
-            isHost:false
-          });
+      // if(response_message=="OK"&&game_state_now=="waiting"&&players.length<8){
+      //   players.push(username);
+      //   if(players[0]==username){
+      //     io.emit('register_response_OK',{
+      //       hostName:players[0],
+      //       players_now:players,
+      //       isHost:true
+      //     });
+      //   }else{
+      //     io.emit('register_response_OK',{
+      //       hostName:players[0],
+      //       players_now:players,
+      //       isHost:false
+      //     });
 
-        }
+      //   }
         
+      // }
+      if(response_message=="OK"&&!players.includes(username)){
+        players.push(username);
       }
-      io.emit('register_response',response_message)
+      io.emit('register_response',{
+        response_msg:response_message,
+        username:username,
+        currentStage:currentStage,
+        hostName:players[0],
+        players_now:players
+      })
     }catch(error){
       console.error("Registration failed:", error);
     }
@@ -92,23 +101,32 @@ io.on('connection', socket => {
       const {response_message,username}=await login(loginDetails);
       console.log("login message is:",response_message);
       console.log("username is: ",username)
-      if(response_message=="OK"&&game_state_now=="waiting"&&players.length<8){
-        players.push(username);
-        console.log("players :",players);
-        if(players[0]==username){
-          io.emit('register_response_OK',{
-            hostName:players[0],
-            players_now:players,
-          });
-        }else{
-          io.emit('register_response_OK',{
-            hostName:players[0],
-            players_now:players,
-          });
-        }
+      // if(response_message=="OK"&&game_state_now=="waiting"&&players.length<8){
+      //   players.push(username);
+      //   console.log("players :",players);
+      //   if(players[0]==username){
+      //     io.emit('register_response_OK',{
+      //       hostName:players[0],
+      //       players_now:players,
+      //     });
+      //   }else{
+      //     io.emit('register_response_OK',{
+      //       hostName:players[0],
+      //       players_now:players,
+      //     });
+      //   }
         
+      // }
+      if(response_message=="OK"&&!players.includes(username)){
+        players.push(username);
       }
-      io.emit('register_response',response_message)
+      io.emit('register_response',{
+        response_msg:response_message,
+        username:username,
+        currentStage:currentStage,
+        hostName:players[0],
+        players_now:players
+      })
     }catch(error){
       console.error("login failed:", error);
     }
