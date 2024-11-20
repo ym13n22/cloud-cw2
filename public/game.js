@@ -47,7 +47,6 @@ var app = new Vue({
         gameStart(){
             if(this.players.length<3){
                 this.statusMessageGameStart='number of players must over three';
-                this.currentStage='PromptCollection';//////////////////暂时的后面记得删@!!!!!!!!!!!
             }
             else{
                 this.currentStage='PromptCollection';
@@ -87,9 +86,12 @@ function connect() {
     });
     socket.on('register_response_OK',response=>{
         app.currentStage='Waiting';
-        const {hostName,players_now,isHost}=response;
+        const {hostName,players_now}=response;
         app.hostName=hostName;
         app.players=players_now;
-        app.isHost=isHost;
+        if(app.username==hostName){
+            app.isHost=true;
+        }
+        
     });
 }

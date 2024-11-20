@@ -10,6 +10,7 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const game_state_now="waiting";
 const players=[];
+const userSessions = {};
 
 //Setup static page handling
 app.set('view engine', 'ejs');
@@ -98,13 +99,11 @@ io.on('connection', socket => {
           io.emit('register_response_OK',{
             hostName:players[0],
             players_now:players,
-            isHost:true
           });
         }else{
           io.emit('register_response_OK',{
             hostName:players[0],
             players_now:players,
-            isHost:false
           });
         }
         
