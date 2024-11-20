@@ -1,7 +1,5 @@
 var socket = null;
 
-/////////////////不应该一个连接创造一个实例吗?????为什么分不开
-//Prepare game
 var app = new Vue({
     el: '#game',
     data: {
@@ -16,6 +14,8 @@ var app = new Vue({
         statusMessageGameStart:'',
         hostName: '',
         players: [],
+        prompt:'',
+        prompt_submitted:false,
         
     },
     mounted: function() {
@@ -52,6 +52,12 @@ var app = new Vue({
                 this.currentStage='PromptCollection';
             }
             
+        },
+        prompt_submitted(){
+            if(prompt!=''){
+                socket.emit('prompt',this.prompt);
+                this.prompt_submitted=true;
+            }
         }
     }
 });

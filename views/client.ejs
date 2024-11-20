@@ -14,7 +14,7 @@
             <%- include('waiting'); -%>
         </div>
         <div v-else-if="connected && currentStage === 'PromptCollection'">
-            <p>is in prompt collection stage</p>
+            <%- include('promptCollect'); -%>
         </div>
         <div v-else>
             <p>Connecting...</p>
