@@ -10,7 +10,7 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const game_state_now="waiting";
 const players=[];
-const userSessions = {};
+let currentStage='Auth';
 
 //Setup static page handling
 app.set('view engine', 'ejs');
@@ -115,10 +115,19 @@ io.on('connection', socket => {
 
   })
 
+  socket.on('gameStart',()=>{
+    currentStage='PromptCollection';
+    io.emit('gameStart');
+  })
+
   socket.on('prompt',async promptDetails=>{
     console.log(`prompt apply with ${JSON.stringify(promptDetails)}`);
-    const response=await prompt(promptDetails);
-    io.emit('prompt_response',response);
+    const{prompt,username}=promptDetails;
+    const response=await handle_prompt(promptDetails);
+    io.emit('prompt_response',{
+      response_context:response,
+      username:username
+    });
   })
 });
 
@@ -156,7 +165,7 @@ async function login(loginDetails) {
   }
 }
 
-async function prompt(promptDetails){
+async function handle_prompt(promptDetails){
   const{prompt,username}=promptDetails;
   console.log("prompt : ",prompt,"username : ",username);
   if (username && prompt){

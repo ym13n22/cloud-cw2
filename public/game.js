@@ -50,7 +50,8 @@ var app = new Vue({
                 this.statusMessageGameStart='number of players must over three';
             }
             else{
-                this.currentStage='PromptCollection';
+                socket.emit('gameStart');
+               
             }
         },
         prompt_submitted(){
@@ -104,13 +105,21 @@ function connect() {
         
     });
 
+    socket.on('gameStart',()=>{
+        app.currentStage='PromptCollection';
+    })
+
     socket.on('prompt_response',response=>{
-        if(response!="OK"){
-            app.promptMessage=response;
+        const{response_context,username}=response;
+        if(username==app.username){
+            if(response_context!="OK"){
+                app.promptMessage=response;
+            }
+            else{
+                app.promptSubmitted=true;
+            }
         }
-        else{
-            app.promptSubmitted=true;
-        }
+      
        
         
     });
