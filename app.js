@@ -114,6 +114,12 @@ io.on('connection', socket => {
     }
 
   })
+
+  socket.on('prompt',async promptDetails=>{
+    console.log(`prompt apply with ${JSON.stringify(promptDetails)}`);
+    const response=await prompt(promptDetails);
+    io.emit('prompt_response',response);
+  })
 });
 
 async function register(registerDetails) {
@@ -147,6 +153,20 @@ async function login(loginDetails) {
       }
   } else {
     return ("error")
+  }
+}
+
+async function prompt(promptDetails){
+  const{prompt,username}=promptDetails;
+  console.log("prompt : ",prompt,"username : ",username);
+  if (username && prompt){
+    try{
+      const response =await handleatchPrompt("https://cw111.azurewebsites.net/api/prompt/create",prompt,username);
+      console.log("response is: ",response.msg);
+      return response.msg;
+    }catch (error) {
+      console.error("An error occurred during create prompt: ",error);
+    }
   }
 }
 
@@ -240,6 +260,35 @@ function sendGetRequestWithBody(endpoint, username, password) {
       // End the request
       req.end();
   });
+}
+
+async function handleatchPrompt(endpoint, text, username){
+  const url = endpoint;
+    const apiKey = "jLncRoiYHvcqdgXVSKmMGKSpSpPSDRxgLS-WI5jJASR4AzFujfBAdQ==";
+
+    // 构造请求的 payload
+    const payload = {
+        text: text,        // 动态输入 text
+        username: username // 动态输入 username
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-functions-key": apiKey
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        console.log("Response received:", data);
+        return data; // 返回响应结果
+    } catch (error) {
+        console.error("Error in handleFetch:", error);
+        throw error; // 抛出错误以供外部处理
+    }
 }
 
 

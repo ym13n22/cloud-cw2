@@ -12,10 +12,11 @@ var app = new Vue({
         password:'',
         statusMessage: '',
         statusMessageGameStart:'',
+        promptMessage:'',
         hostName: '',
         players: [],
         prompt:'',
-        prompt_submitted:false,
+        promptSubmitted:false,
         
     },
     mounted: function() {
@@ -51,12 +52,14 @@ var app = new Vue({
             else{
                 this.currentStage='PromptCollection';
             }
-            
         },
         prompt_submitted(){
             if(prompt!=''){
-                socket.emit('prompt',this.prompt);
-                this.prompt_submitted=true;
+                socket.emit('prompt',{
+                    prompt:this.prompt,
+                    username:this.username
+                });
+                
             }
         }
     }
@@ -98,6 +101,17 @@ function connect() {
         if(app.username==hostName){
             app.isHost=true;
         }
+        
+    });
+
+    socket.on('prompt_response',response=>{
+        if(response!="OK"){
+            app.promptMessage=response;
+        }
+        else{
+            app.promptSubmitted=true;
+        }
+       
         
     });
 }
