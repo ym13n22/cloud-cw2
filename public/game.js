@@ -93,14 +93,14 @@ function connect() {
     });
     socket.on('register_response',response =>{
         const{response_msg,username,currentStage,hostName,players_now}=response
+        app.hostName=hostName;
+        app.players=players_now;
         if(username==app.username){
             if(response_msg!="OK"){
                 app.statusMessage=response_msg
             }else{
                 if(currentStage=='Auth'){
                     app.currentStage='Waiting';
-                    app.hostName=hostName;
-                    app.players=players_now;
                     if(app.username==hostName){
                         app.isHost=true;
                     }
