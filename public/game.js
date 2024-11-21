@@ -15,7 +15,9 @@ var app = new Vue({
         promptMessage:'',
         hostName: '',
         players: [],
+        audience:[],
         prompt:'',
+        prompt_asked:'',
         promptSubmitted:false,
         
     },
@@ -62,6 +64,10 @@ var app = new Vue({
                 });
                 
             }
+        },
+        startToAnswer(){
+            socket.emit('startToAnswer')
+
         }
     }
 });
@@ -123,7 +129,7 @@ function connect() {
 
     socket.on('gameStart',()=>{
         app.currentStage='PromptCollection';
-    })
+    });
 
     socket.on('prompt_response',response=>{
         const{response_context,username}=response;
@@ -134,9 +140,10 @@ function connect() {
             else{
                 app.promptSubmitted=true;
             }
-        }
-      
-       
-        
+        } 
     });
+
+    socket.on('startToAnswer',()=>{
+        app.currentStage='Answer';
+    })
 }

@@ -22,5 +22,9 @@
         <button  @click="prompt_submitted">Done</button>
     </div>
     <div id="status" style="color: red;">{{ promptMessage }}</div>
+
+    <div v-if="isHost" class="buttonRight-container">
+        <button  @click="startToAnswer">start to answer</button>
+    </div>
     
 </div>

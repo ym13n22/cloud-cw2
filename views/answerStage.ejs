@@ -1,0 +1,30 @@
+<div id="Answer stage">
+    <div class="input-container">
+        <h3> {{ username }}</h3>
+    </div>
+    <div v-if="!AnswerSubmitted"  class="host-container">
+        <h5>{{prompt_asked}}</h5>
+    </div>
+
+    <div v-if="AnswerSubmitted" class="host-container">
+        <h5> now you just need to wait for everyone else...</h5>
+    </div>
+
+    <div v-if="!AnswerSubmitted" class="prompt-container">
+        <input type="text" id="answer" v-model="answer">
+    </div>
+
+   
+    
+    
+    
+    <div v-if="!AnswerSubmitted" class="button-container">
+        <button  @click="answer_submitted">Done</button>
+    </div>
+    
+
+    <div v-if="isHost" class="buttonRight-container">
+        <button  @click="startToAnswer">start to vote</button>
+    </div>
+    
+</div>

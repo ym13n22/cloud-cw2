@@ -16,6 +16,9 @@
         <div v-else-if="connected && currentStage === 'PromptCollection'">
             <%- include('promptCollect'); -%>
         </div>
+        <div v-else-if="connected && currentStage === 'Answer'">
+            <%- include('answerStage'); -%>
+        </div>
         <div v-else>
             <p>Connecting...</p>
         </div>

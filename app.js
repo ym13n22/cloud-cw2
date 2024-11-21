@@ -10,7 +10,9 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const game_state_now="waiting";
 const players=[];
+const audience=[];
 let currentStage='Auth';
+const prompts=[];
 
 //Setup static page handling
 app.set('view engine', 'ejs');
@@ -146,6 +148,11 @@ io.on('connection', socket => {
       response_context:response,
       username:username
     });
+  })
+
+  socket.on('startToAnswer',()=>{
+    currentStage='Answer';
+    io.emit('startToAnswer');
   })
 });
 
