@@ -13,6 +13,7 @@ const players=[];
 const audience=[];
 let currentStage='Auth';
 const prompts=[];
+const promptsName=[];
 
 //Setup static page handling
 app.set('view engine', 'ejs');
@@ -143,6 +144,8 @@ io.on('connection', socket => {
   socket.on('prompt',async promptDetails=>{
     console.log(`prompt apply with ${JSON.stringify(promptDetails)}`);
     const{prompt,username}=promptDetails;
+    prompts.push(prompt);
+    promptsName.push(username);
     const response=await handle_prompt(promptDetails);
     io.emit('prompt_response',{
       response_context:response,
@@ -150,9 +153,10 @@ io.on('connection', socket => {
     });
   })
 
-  socket.on('startToAnswer',()=>{
+  socket.on('startToAnswer',async language=>{
     currentStage='Answer';
-    io.emit('startToAnswer');
+    const assigned=await assignPrompt(language);
+    io.emit('startToAnswer',assigned);
   })
 });
 
@@ -324,6 +328,173 @@ async function handleatchPrompt(endpoint, text, username){
         throw error; // 抛出错误以供外部处理
     }
 }
+
+async function getPrompts(language){
+  console.log("start to get prompt")
+  let promptNumber=0
+  
+    if(players.length%2==0){
+      promptNumber=(players.length)/2;
+    }else{
+      promptNumber=players.length;
+    }
+  
+    console.log("promptNumber is : ",promptNumber);
+
+    const prompt_get=[];
+    if (promptNumber / 2 > prompts.length) {
+      prompt_get.push(...prompts);
+  
+      const promptLeft = promptNumber - prompt_get.length;
+
+      for (let i = 0; i < promptLeft; i++) {
+          const response =await sendGetPrompt("https://cw111.azurewebsites.net/api/utils/get", promptsName[i], language);
+          const fstResponse=response[0];
+          console.log("response now is: ",fstResponse.text);
+          prompt_get.push(fstResponse.text);
+          
+      }
+  } else {
+
+      let getFromPrompt = Math.floor(promptNumber / 2); 
+      const getFromDB = promptNumber - getFromPrompt;   
+  
+     
+      for (let i = 0; i < prompts.length && getFromPrompt > 0; i++) {
+          prompt_get.push(prompts[i]);
+          getFromPrompt--;
+      }
+  
+  
+      for (let i = 0; i < getFromDB; i++) {
+          const response =await sendGetPrompt("https://cw111.azurewebsites.net/api/utils/get", promptsName[i], language);
+          const fstResponse=response[0];
+          console.log("response now is: ",fstResponse.text);
+          prompt_get.push(fstResponse.text);
+          
+      }
+      
+      
+  }
+  console.log("prompt_get : ",prompt_get);
+  return prompt_get; 
+    
+}
+
+
+
+async function assignPrompt(language) {
+  const playerCount = players.length;
+  const promptAssigned=await getPrompts(language);
+  console.log("promptToAssign ",promptAssigned);
+  const promptCount = promptAssigned.length;
+
+ 
+
+  const allocation = {}; // 初始化空对象
+  for (let i = 0; i < players.length; i++) {
+    allocation[players[i]] = []; // 为每个玩家分配一个空数组
+}
+
+  console.log("initial allocation");
+
+  if (playerCount % 2 === 0) {
+      // Even number of players: 1 prompt per player
+      for (let i = 0; i < playerCount; i++) {
+          const assignedPrompt = promptAssigned[i % promptCount]; // Cycle through prompts
+          allocation[players[i]].push(assignedPrompt);
+      }
+  } else {
+      // Odd number of players: 2 prompts per player
+      for (let i = 0; i < playerCount; i++) {
+          // Assign the first prompt
+          const firstPrompt = promptAssigned[i % promptCount];
+          allocation[players[i]].push(firstPrompt);
+
+          // Assign the second prompt (offset by one to avoid repetition)
+          const secondPrompt = promptAssigned[(i + 1) % promptCount];
+          allocation[players[i]].push(secondPrompt);
+      }
+  }
+  console.log("allocation :",allocation);
+  return allocation;
+}
+
+
+
+function sendGetPrompt(endpoint, username, language) {
+  // Prepare the payload
+  const payload = JSON.stringify({
+    players: [username],
+    language: language
+  });
+
+  // Parse the URL to extract hostname and path
+  const url = new URL(endpoint);
+
+  // Define request options
+  const options = {
+      hostname: url.hostname,
+      path: url.pathname,
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json',
+          'x-functions-key': 'jLncRoiYHvcqdgXVSKmMGKSpSpPSDRxgLS-WI5jJASR4AzFujfBAdQ==',
+          'Content-Length': Buffer.byteLength(payload)
+      }
+  };
+
+  return new Promise((resolve, reject) => {
+      console.log('Sending request with options:', options); // Log request details
+
+      // Create the request
+      const req = https.request(options, (res) => {
+          let data = '';
+
+          console.log(`Response status: ${res.statusCode}`); // Log status code
+
+          // Collect response data
+          res.on('data', (chunk) => {
+              data += chunk;
+          });
+
+          // Resolve the promise on end
+          res.on('end', () => {
+              console.log('Raw response body:', data); // Log raw response
+
+              if (res.statusCode === 200) {
+                  try {
+                      const jsonResponse = JSON.parse(data);
+                      console.log('Parsed JSON response:', jsonResponse); // Log parsed JSON
+                      resolve(jsonResponse);
+                  } catch (e) {
+                      console.error('Error parsing JSON response:', e.message); // Log JSON parsing error
+                      reject({ error: 'Failed to parse JSON', details: e.message });
+                  }
+              } else {
+                  console.error('Non-200 status received, response body:', data); // Log error details
+                  reject({
+                      error: `Request failed with status ${res.statusCode}`,
+                      details: data
+                  });
+              }
+          });
+      });
+
+      // Handle errors
+      req.on('error', (e) => {
+          console.error('Request error:', e.message); // Log request errors
+          reject({ error: e.message });
+      });
+
+      // Write the payload to the request body
+      req.write(payload);
+
+      // End the request
+      req.end();
+  });
+}
+
 
 
 

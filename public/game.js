@@ -19,6 +19,9 @@ var app = new Vue({
         prompt:'',
         prompt_asked:'',
         promptSubmitted:false,
+        language:"en",
+        firstPrompt:'',
+        secondPrompt:''
         
     },
     mounted: function() {
@@ -66,7 +69,7 @@ var app = new Vue({
             }
         },
         startToAnswer(){
-            socket.emit('startToAnswer')
+            socket.emit('startToAnswer',this.language);
 
         }
     }
@@ -135,15 +138,28 @@ function connect() {
         const{response_context,username}=response;
         if(username==app.username){
             if(response_context!="OK"){
-                app.promptMessage=response;
+                app.promptMessage=response.response_context;
             }
             else{
+                app.promptMessage="";
                 app.promptSubmitted=true;
             }
         } 
     });
 
-    socket.on('startToAnswer',()=>{
+    socket.on('startToAnswer',promptsForPlayers=>{
         app.currentStage='Answer';
+        app.firstPrompt=promptsForPlayers;
+        const playerData = promptsForPlayers[this.username];
+    
+        if (playerData) {
+        const prompts = playerData;
+        app.firstPrompt=playerData;
+        app.secondPrompt=prompts[1];
+        
+        } else {
+        console.log(`No prompts found for player ${this.username}`);
+        }
+
     })
 }
