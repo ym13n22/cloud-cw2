@@ -14,6 +14,7 @@ const audience=[];
 let currentStage='Auth';
 const prompts=[];
 const promptsName=[];
+const promptAndAnswers={};
 
 //Setup static page handling
 app.set('view engine', 'ejs');
@@ -157,6 +158,18 @@ io.on('connection', socket => {
     currentStage='Answer';
     const assigned=await assignPrompt(language);
     io.emit('startToAnswer',assigned);
+  })
+
+  socket.on('answerSubmitted',answerDetails=>{
+    const {username,question,answer}=answerDetails;
+    promptAndAnswers[question]=[];
+    promptAndAnswers[question].push(username);
+    promptAndAnswers[question].push(answer);
+    console.log("answerDetails saved with ",answerDetails);
+  })
+
+  socket.on('startVoting',()=>{
+    io.emit('startVoting')
   })
 });
 

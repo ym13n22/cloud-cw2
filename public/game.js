@@ -21,7 +21,9 @@ var app = new Vue({
         promptSubmitted:false,
         language:"en",
         firstPrompt:'',
-        secondPrompt:''
+        secondPrompt:'',
+        answer:'',
+        AnswerSubmitted:false,
         
     },
     mounted: function() {
@@ -71,6 +73,25 @@ var app = new Vue({
         startToAnswer(){
             socket.emit('startToAnswer',this.language);
 
+        },
+        answer_submitted(){
+            socket.emit('answerSubmitted',{
+                username:this.username,
+                question:this.firstPrompt,
+                answer:this.answer
+            });
+            if(this.secondPrompt!=''){
+                this.answer='';
+                this.firstPrompt=this.secondPrompt;
+                this.secondPrompt='';
+            }else{
+                this.AnswerSubmitted=true;
+               // this.currentStage='Voting';
+               // socket.emit('startVoting');
+            }
+        },
+        startToVote(){
+            socket.emit('startVoting')
         }
     }
 });
@@ -149,17 +170,18 @@ function connect() {
 
     socket.on('startToAnswer',promptsForPlayers=>{
         app.currentStage='Answer';
-        app.firstPrompt=promptsForPlayers;
-        const playerData = promptsForPlayers[this.username];
-    
-        if (playerData) {
-        const prompts = playerData;
-        app.firstPrompt=playerData;
-        app.secondPrompt=prompts[1];
-        
-        } else {
-        console.log(`No prompts found for player ${this.username}`);
+        const target = promptsForPlayers[app.username];
+        if(!target){
+            app.firstPrompt=("do not have the target under the username: ",this.username);
+        }
+        app.firstPrompt =target[0];
+        if(target[1]){
+            app.secondPrompt=target[1];
         }
 
+    });
+
+    socket.on('startVoting',()=>{
+        app.currentStage='Voting';
     })
 }
