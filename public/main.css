@@ -117,3 +117,34 @@ body {
     background-color: #bdc3c7; /* 鼠标悬停时改变背景颜色 */
 }
 
+
+
+.votingButton-container {
+    display: flex;
+    justify-content: space-between; /* 按钮左右分布 */
+    flex-wrap: wrap;                /* 当空间不足时，按钮换行 */
+    gap: 10px;                      /* 按钮之间的间距 */
+    width: 100%;                    /* 容器宽度为父容器的100% */
+    max-width: 600px;               /* 可选：控制容器的最大宽度 */
+    margin: 0 auto;                 /* 居中容器 */
+}
+
+/* 按钮样式 */
+.votingButton-container button {
+    flex: 1 1 48%;  /* 按钮占据容器宽度的48%，保证左右有间隙 */
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: white;
+    color:black;
+    transition: background-color 0.3s;
+}
+
+/* 按钮悬停效果 */
+.votingButton-container button:hover {
+    background-color: rgb(200, 195, 195);
+}
+
+

@@ -23,7 +23,16 @@ var app = new Vue({
         firstPrompt:'',
         secondPrompt:'',
         answer:'',
+        answer1:'',
+        answer2:'',
+        answer1Name:'',
+        answer2Name:'',
+        promptAndAnswerLeft:{},
+        allPromptAndAnswers:{},
         AnswerSubmitted:false,
+        AudienceWaiting:false,
+        VoteSubmitted:false,
+        firstVotingQuestion:false
         
     },
     mounted: function() {
@@ -92,6 +101,12 @@ var app = new Vue({
         },
         startToVote(){
             socket.emit('startVoting')
+        },
+        answer1_voted(){
+
+        },
+        answer2_voted(){
+            
         }
     }
 });
@@ -172,6 +187,7 @@ function connect() {
         app.currentStage='Answer';
         const target = promptsForPlayers[app.username];
         if(!target){
+            AudienceWaiting=true;
             app.firstPrompt=("do not have the target under the username: ",this.username);
         }
         app.firstPrompt =target[0];
@@ -181,7 +197,37 @@ function connect() {
 
     });
 
-    socket.on('startVoting',()=>{
-        app.currentStage='Voting';
-    })
+   
+    socket.on('startVoting', (promptAnswer) => {
+        app.currentStage = 'Voting';
+        for (const question in promptAnswer) {
+            if (promptAnswer[question].includes(username)) {
+                delete promptAnswer[question];
+            }
+        }
+        app.allPromptAndAnswers=promptAnswer;
+            
+        const [firstQuestion, answers] = Object.entries(promptAnswer)[0];
+            
+        app.firstVotingQuestion = firstQuestion;
+            
+        app.answer1 = answers[1]; // 第二个元素
+        app.answer2 = answers[3]; // 第四个元素
+
+        app.answer1Name=answers[0];
+        app.answer2Name=answers[2];
+
+        const remaining = { ...promptAnswer };
+        if(remaining[firstQuestion].length>4){
+            remaining[firstQuestion] =remaining[firstQuestion].slice(4);
+        }
+        else{
+            delete remaining[firstQuestion];
+       
+        }
+        app.promptAndAnswerLeft = remaining;
+        
+    });
+        
+
 }

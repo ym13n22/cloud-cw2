@@ -20,7 +20,7 @@
             <%- include('answerStage'); -%>
         </div>
         <div v-else-if="connected && currentStage === 'Voting'">
-            <p>Voting...</p>
+            <%- include('Voting'); -%>
         </div>
         <div v-else>
             <p>Connecting...</p>

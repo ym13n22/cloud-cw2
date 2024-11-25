@@ -1,5 +1,6 @@
 'use strict';
 
+const { CONNREFUSED } = require('dns');
 //Set up express
 const express = require('express');
 const app = express();
@@ -121,8 +122,13 @@ io.on('connection', socket => {
       //   }
         
       // }
-      if(response_message=="OK"&&!players.includes(username)){
-        players.push(username);
+      if(response_message=="OK"&&!players.includes(username)&&!audience.includes(username)){
+        if(currentStage=='Auth'){
+          players.push(username);
+        }else{
+          audience.push
+        }
+        
       }
       io.emit('register_response',{
         response_msg:response_message,
@@ -162,14 +168,24 @@ io.on('connection', socket => {
 
   socket.on('answerSubmitted',answerDetails=>{
     const {username,question,answer}=answerDetails;
-    promptAndAnswers[question]=[];
-    promptAndAnswers[question].push(username);
-    promptAndAnswers[question].push(answer);
-    console.log("answerDetails saved with ",answerDetails);
+    const target=promptAndAnswers[question]
+    if(!target){
+      promptAndAnswers[question]=[];
+      promptAndAnswers[question].push(username);
+      promptAndAnswers[question].push(answer);
+      //console.log("answerDetails saved with ",answerDetails);
+    }else{
+      promptAndAnswers[question].push(username);
+      promptAndAnswers[question].push(answer);
+      //console.log("answerDetails saved with ",answerDetails);
+    }
+   
   })
 
   socket.on('startVoting',()=>{
-    io.emit('startVoting')
+    currentStage='Voting'
+    console.log("promptAndAnswer: ",promptAndAnswers);
+    io.emit('startVoting',promptAndAnswers);
   })
 });
 

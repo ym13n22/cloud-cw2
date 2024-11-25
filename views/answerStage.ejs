@@ -6,11 +6,15 @@
         <h5>{{firstPrompt}}</h5>
     </div>
 
-    <div v-if="AnswerSubmitted" class="host-container">
+    <div v-if="AnswerSubmitted && !AudienceWaiting" class="host-container">
         <h5> now you just need to wait for everyone else...</h5>
     </div>
 
-    <div v-if="!AnswerSubmitted" class="prompt-container">
+    <div v-if="AudienceWaiting" class="host-container">
+        <h5>You are the audience,now you just need to wait for all the players answering their questions</h5>
+    </div>
+
+    <div v-if="!AnswerSubmitted && !AudienceWaiting" class="prompt-container">
         <input type="text" id="answer" v-model="answer">
     </div>
 
@@ -18,13 +22,13 @@
     
     
     
-    <div v-if="!AnswerSubmitted" class="button-container">
+    <div v-if="!AnswerSubmitted && !AudienceWaiting" class="button-container">
         <button  @click="answer_submitted">Done</button>
     </div>
 
     
 
-    <div v-if="isHost" class="buttonRight-container">
+    <div v-if="isHost && !AudienceWaiting" class="buttonRight-container">
         <button  @click="startToVote">start to vote</button>
     </div>
     

@@ -1,0 +1,26 @@
+<div id="Voting stage">
+    <div class="input-container">
+        <h3> {{ username }}</h3>
+    </div>
+    <div v-if="!VoteSubmitted"  class="host-container">
+        <h5>{{firstVotingQuestion}}</h5>
+    </div>
+
+    <div v-if="VoteSubmitted" class="host-container">
+        <h5> now you just need to wait for everyone else...</h5>
+    </div>
+ 
+    
+    <div v-if="!VoteSubmitted " class="votingButton-container">
+        <button  @click="answer1_voted">{{answer1}}</button>
+        <button  @click="answer2_voted">{{answer2}}</button>
+    </div>
+
+
+    
+
+    <div v-if="isHost && !AudienceWaiting" class="buttonRight-container">
+        <button  @click="startToVote">start to vote</button>
+    </div>
+    
+</div>
