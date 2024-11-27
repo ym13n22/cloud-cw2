@@ -187,6 +187,18 @@ io.on('connection', socket => {
     console.log("promptAndAnswer: ",promptAndAnswers);
     io.emit('startVoting',promptAndAnswers);
   })
+
+  socket.on('voted',votedDetails=>{
+    const {question,answer,ansname}=votedDetails;
+    console.log('votedDetails: ',votedDetails);
+    const ansAndNameList=promptAndAnswers[question];
+    console.log('ansAndNameList: ',ansAndNameList);
+    for(const a in ansAndNameList){
+      if (a==answer){
+
+      }
+    }
+  })
 });
 
 async function register(registerDetails) {
@@ -372,17 +384,51 @@ async function getPrompts(language){
 
     const prompt_get=[];
     if (promptNumber / 2 > prompts.length) {
-      prompt_get.push(...prompts);
+      for (const prompt of prompts) {
+        if (!prompt_get.includes(prompt)) {
+            prompt_get.push(prompt);
+        }
+    }
   
       const promptLeft = promptNumber - prompt_get.length;
 
       for (let i = 0; i < promptLeft; i++) {
-          const response =await sendGetPrompt("https://cw111.azurewebsites.net/api/utils/get", promptsName[i], language);
-          const fstResponse=response[0];
-          console.log("response now is: ",fstResponse.text);
-          prompt_get.push(fstResponse.text);
-          
-      }
+        let responseIndex = 0; // 初始化 response 的索引
+        let foundUniquePrompt = false; // 用于标记是否找到唯一的 prompt
+    
+        while (!foundUniquePrompt) {
+            // 获取当前的 response
+            const response = await sendGetPrompt(
+                "https://cw111.azurewebsites.net/api/utils/get",
+                promptsName[i],
+                language
+            );
+    
+            // 检查当前索引是否超出 response 数组范围
+            if (responseIndex >= response.length) {
+                // 如果超出范围，切换到下一个 prompt 名字
+                if (i + 1 >= promptLeft) {
+                    console.error("Error: No unique prompts found in the remaining prompts.");
+                    break;
+                }
+                i++; // 跳到下一个 prompt
+                responseIndex = 0; // 重置索引
+                continue;
+            }
+    
+            // 提取当前索引的文本
+            const currentPrompt = response[responseIndex]?.text;
+    
+            if (currentPrompt && !prompt_get.includes(currentPrompt)) {
+                // 如果当前 prompt 不在 prompt_get 中，添加到列表
+                prompt_get.push(currentPrompt);
+                foundUniquePrompt = true; // 结束当前循环
+            } else {
+                // 如果在 prompt_get 中，检查下一个 response
+                responseIndex++;
+            }
+        }
+    }
   } else {
 
       let getFromPrompt = Math.floor(promptNumber / 2); 
@@ -390,18 +436,53 @@ async function getPrompts(language){
   
      
       for (let i = 0; i < prompts.length && getFromPrompt > 0; i++) {
-          prompt_get.push(prompts[i]);
-          getFromPrompt--;
-      }
+        while (prompt_get.includes(prompts[i]) && i < prompts.length - 1) {
+            i++;
+        }
+        if (!prompt_get.includes(prompts[i])) {
+            prompt_get.push(prompts[i]);
+            getFromPrompt--;
+        }
+    }
   
   
       for (let i = 0; i < getFromDB; i++) {
-          const response =await sendGetPrompt("https://cw111.azurewebsites.net/api/utils/get", promptsName[i], language);
-          const fstResponse=response[0];
-          console.log("response now is: ",fstResponse.text);
-          prompt_get.push(fstResponse.text);
-          
-      }
+        let responseIndex = 0; // 初始化 response 的索引
+        let foundUniquePrompt = false; // 用于标记是否找到唯一的 prompt
+    
+        while (!foundUniquePrompt) {
+            // 获取当前的 response
+            const response = await sendGetPrompt(
+                "https://cw111.azurewebsites.net/api/utils/get",
+                promptsName[i],
+                language
+            );
+    
+            // 检查当前索引是否超出 response 数组范围
+            if (responseIndex >= response.length) {
+                // 如果超出范围，切换到下一个 prompt 名字
+                if (i + 1 >= getFromDB) {
+                    console.error("Error: No unique prompts found in the remaining prompts.");
+                    break;
+                }
+                i++; // 跳到下一个 prompt
+                responseIndex = 0; // 重置索引
+                continue;
+            }
+    
+            // 提取当前索引的文本
+            const currentPrompt = response[responseIndex]?.text;
+    
+            if (currentPrompt && !prompt_get.includes(currentPrompt)) {
+                // 如果当前 prompt 不在 prompt_get 中，添加到列表
+                prompt_get.push(currentPrompt);
+                foundUniquePrompt = true; // 结束当前循环
+            } else {
+                // 如果在 prompt_get 中，检查下一个 response
+                responseIndex++;
+            }
+        }
+    }
       
       
   }

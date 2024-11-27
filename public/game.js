@@ -95,17 +95,45 @@ var app = new Vue({
                 this.secondPrompt='';
             }else{
                 this.AnswerSubmitted=true;
-               // this.currentStage='Voting';
-               // socket.emit('startVoting');
             }
         },
         startToVote(){
             socket.emit('startVoting')
         },
         answer1_voted(){
+            socket.emit('voted',{
+                question:this.firstVotingQuestion,
+                answer:this.answer1,
+                ansname:this.answer1Name
+            })
+            if(this.promptAndAnswerLeft!={}){
+            const [firstQuestion, answers] = Object.entries(promptAnswer)[0];
+            
+            app.firstVotingQuestion = firstQuestion;
+            
+            app.answer1 = answers[1]; // 第二个元素
+            app.answer2 = answers[3]; // 第四个元素
 
+            app.answer1Name=answers[0];
+            app.answer2Name=answers[2];
+
+            const remaining = { ...this.promptAndAnswerLeft };
+            if(remaining[firstQuestion].length>4){
+            remaining[firstQuestion] =remaining[firstQuestion].slice(4);
+            }
+            else{
+                delete remaining[firstQuestion];
+       
+            }
+            app.promptAndAnswerLeft = remaining;
+            }
         },
         answer2_voted(){
+            socket.emit('voted',{
+                question:this.firstVotingQuestion,
+                answer:this.answer2,
+                ansname:this.answer2Name
+            })
             
         }
     }
@@ -201,9 +229,13 @@ function connect() {
     socket.on('startVoting', (promptAnswer) => {
         app.currentStage = 'Voting';
         for (const question in promptAnswer) {
-            if (promptAnswer[question].includes(username)) {
+            if (promptAnswer[question].includes(app.username)) {
                 delete promptAnswer[question];
             }
+        }
+        if (Object.keys(promptAnswer).length === 0) {
+            app.firstVotingQuestion="sorry do not have the chance to vote"
+            return;
         }
         app.allPromptAndAnswers=promptAnswer;
             
