@@ -1,4 +1,4 @@
-<div id="Scores stage">
+<div id="Score stage">
     <div class="input-container">
         <h3> {{ username }}</h3>
     </div>
@@ -11,10 +11,24 @@
     </div>
  
     
-    <div v-if="!VoteScoresDone " class="votingButton-container">
-        <button  @click="answer1_voted">{{ScoreContent1}}</button>
-        <button  @click="answer2_voted">{{ScoreContent2}}</button>
+    <div v-if="!VoteScoresDone" class="scoreList-container">
+        <!-- 两个列表的容器 -->
+        <div class="scrollable-lists-container">
+            <!-- 左侧滚动列表 -->
+            <ul class="scrollable-list">
+                <li v-for="(item, index) in ScoreContentList1" :key="`list1-${index}`" @click="voteOption1(index)">
+                    {{ item }}
+                </li>
+            </ul>
+            <!-- 右侧滚动列表 -->
+            <ul class="scrollable-list">
+                <li v-for="(item, index) in ScoreContentList2" :key="`list2-${index}`" @click="voteOption2(index)">
+                    {{ item }}
+                </li>
+            </ul>
+        </div>
     </div>
+    
 
 
     

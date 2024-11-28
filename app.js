@@ -212,6 +212,10 @@ io.on('connection', socket => {
     }
     console.log('ansAndNameListNow: ',promptAndAnswers);
   })
+
+  socket.on('startScores',promptAndAnswers=>{
+    io.emit('sendScores',promptAndAnswers);
+  })
 });
 
 async function register(registerDetails) {

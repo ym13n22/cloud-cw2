@@ -32,7 +32,11 @@ var app = new Vue({
         AnswerSubmitted:false,
         AudienceWaiting:false,
         VoteSubmitted:false,
-        firstVotingQuestion:false
+        VoteScoresDone:false,
+        firstVotingQuestion:'',
+        firstScoreQuestion:'first Score Question',
+        ScoreContentList1:[],
+        ScoreContentList2:[]
         
     },
     mounted: function() {
@@ -292,5 +296,10 @@ function connect() {
         
     });
         
+
+    socket.on('sendScores',(promptAndAnswers)=>{
+        app.currentStage = 'ScoresShow';
+        app.firstScoreQuestion=promptAndAnswers;
+    })
 
 }

@@ -146,5 +146,45 @@ body {
 .votingButton-container button:hover {
     background-color: rgb(200, 195, 195);
 }
+.scoreList-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px;
+  }
+  
+.scrollable-lists-container {
+    display: flex; /* 水平排列 */
+    gap: 20px; /* 两个列表之间的间距 */
+  }
+  
+.scrollable-list {
+    list-style-type: none; /* 去掉默认的圆点样式 */
+    margin: 0;
+    padding: 0;
+    max-height: 200px; /* 设置列表的最大高度 */
+    overflow-y: auto; /* 垂直滚动 */
+    width: 150px; /* 每个列表的固定宽度 */
+    border: 1px solid #ccc; /* 添加边框 */
+    border-radius: 5px;
+    background-color: #fff; /* 背景色 */
+  }
+  
+.scrollable-list li {
+    padding: 10px;
+    margin: 0;
+    cursor: pointer;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    transition: background-color 0.3s ease;
+  }
+  
+.scrollable-list li:hover {
+    background-color: #ececec; /* 悬停效果 */
+  }
+  
+.scrollable-list li:last-child {
+    border-bottom: none; /* 去掉最后一项的边框 */
+  }
 
 
