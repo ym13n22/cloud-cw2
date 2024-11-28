@@ -34,7 +34,7 @@ var app = new Vue({
         VoteSubmitted:false,
         VoteScoresDone:false,
         firstVotingQuestion:'',
-        firstScoreQuestion:'first Score Question',
+        firstScoreQuestion:'',
         ScoreContentList1:[],
         ScoreContentList2:[]
         
@@ -299,7 +299,53 @@ function connect() {
 
     socket.on('sendScores',(promptAndAnswers)=>{
         app.currentStage = 'ScoresShow';
-        app.firstScoreQuestion=promptAndAnswers;
+        const [firstQuestion, answers] = Object.entries(promptAndAnswers)[0];
+        app.firstScoreQuestion=firstQuestion;
+        const resultArray = [];
+    
+        // 插入第一位
+        resultArray.push(answers[0]);
+    
+        // 第二位
+        if (Array.isArray(answers[1])) {
+            resultArray.push(answers[1]);
+        } else {
+            resultArray.push([]);
+        }
+    
+        // 第三位
+        resultArray.push(answers[2] || null); // 如果没有第三位，填 null
+    
+        // 第四位
+        if (answers.length >= 5 && Array.isArray(answers[3])) {
+            resultArray.push(answers[3]);
+        } else {
+            resultArray.push([]);
+        }
+    
+        // 第五位
+        if (answers.length === 6 && Array.isArray(answers[4])) {
+            resultArray.push(answers[4]);
+        } else {
+            resultArray.push([]);
+        }
+    
+        // 第六位
+        resultArray.push(answers[answers.length - 1] || null);
+
+        app.ScoreContentList1.push(resultArray[2]);
+        app.ScoreContentList1.push(0);
+        for(p in resultArray[1]){
+            app.ScoreContentList1.push(p);
+        }
+
+
+        app.ScoreContentList2.push(resultArray[5]);
+        app.ScoreContentList2.push(3);
+        for(p in resultArray[4]){
+            app.ScoreContentList2.push(p);
+        }
+        
     })
 
 }

@@ -213,8 +213,9 @@ io.on('connection', socket => {
     console.log('ansAndNameListNow: ',promptAndAnswers);
   })
 
-  socket.on('startScores',promptAndAnswers=>{
+  socket.on('startScores',()=>{
     io.emit('sendScores',promptAndAnswers);
+    console.log('snedScores with :',promptAndAnswers)
   })
 });
 
