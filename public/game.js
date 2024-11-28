@@ -104,18 +104,19 @@ var app = new Vue({
             socket.emit('voted',{
                 question:this.firstVotingQuestion,
                 answer:this.answer1,
-                ansname:this.answer1Name
+                ansname:this.answer1Name,
+                votname:this.username
             })
-            if(this.promptAndAnswerLeft!={}){
-            const [firstQuestion, answers] = Object.entries(promptAnswer)[0];
+            if(!this.promptAndAnswerLeft=={}){
+            const [firstQuestion, answers] = Object.entries(this.promptAndAnswerLeft)[0];
             
-            app.firstVotingQuestion = firstQuestion;
+            this.firstVotingQuestion = firstQuestion;
             
-            app.answer1 = answers[1]; // 第二个元素
-            app.answer2 = answers[3]; // 第四个元素
+            this.answer1 = answers[1]; // 第二个元素
+            this.answer2 = answers[3]; // 第四个元素
 
-            app.answer1Name=answers[0];
-            app.answer2Name=answers[2];
+            this.answer1Name=answers[0];
+            this.answer2Name=answers[2];
 
             const remaining = { ...this.promptAndAnswerLeft };
             if(remaining[firstQuestion].length>4){
@@ -125,17 +126,47 @@ var app = new Vue({
                 delete remaining[firstQuestion];
        
             }
-            app.promptAndAnswerLeft = remaining;
+            this.promptAndAnswerLeft = remaining;
+            }else{
+                this.VoteSubmitted=true;
             }
         },
         answer2_voted(){
             socket.emit('voted',{
                 question:this.firstVotingQuestion,
                 answer:this.answer2,
-                ansname:this.answer2Name
+                ansname:this.answer2Name,
+                votname:this.username
             })
+            if(!this.promptAndAnswerLeft=={}){
+                const [firstQuestion, answers] = Object.entries(this.promptAndAnswerLeft)[0];
+                
+                this.firstVotingQuestion = firstQuestion;
+                
+                this.answer1 = answers[1]; // 第二个元素
+                this.answer2 = answers[3]; // 第四个元素
+    
+                this.answer1Name=answers[0];
+                this.answer2Name=answers[2];
+    
+                const remaining = { ...this.promptAndAnswerLeft };
+                if(remaining[firstQuestion].length>4){
+                remaining[firstQuestion] =remaining[firstQuestion].slice(4);
+                }
+                else{
+                    delete remaining[firstQuestion];
+           
+                }
+                this.promptAndAnswerLeft = remaining;
+                }else{
+                    this.VoteSubmitted=true;
+                }
             
+        },
+        getScores(){
+            socket.emit('startScores');
         }
+
     }
 });
 

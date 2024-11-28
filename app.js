@@ -151,9 +151,12 @@ io.on('connection', socket => {
   socket.on('prompt',async promptDetails=>{
     console.log(`prompt apply with ${JSON.stringify(promptDetails)}`);
     const{prompt,username}=promptDetails;
-    prompts.push(prompt);
-    promptsName.push(username);
+    
     const response=await handle_prompt(promptDetails);
+    if(response=="OK"){
+      prompts.push(prompt);
+      promptsName.push(username);
+    }
     io.emit('prompt_response',{
       response_context:response,
       username:username
@@ -189,15 +192,25 @@ io.on('connection', socket => {
   })
 
   socket.on('voted',votedDetails=>{
-    const {question,answer,ansname}=votedDetails;
+    const {question,answer,ansname,votname}=votedDetails;
     console.log('votedDetails: ',votedDetails);
     const ansAndNameList=promptAndAnswers[question];
     console.log('ansAndNameList: ',ansAndNameList);
-    for(const a in ansAndNameList){
-      if (a==answer){
-
+    for (let i = 0; i < ansAndNameList.length; i++) {
+      if (ansAndNameList[i] === ansname) {
+        if(!Array.isArray(ansAndNameList[i+1])){
+          promptAndAnswers[question].splice(i + 1, 0, [votname]);
+        }
+        else{
+          if(!promptAndAnswers[question][i+1].includes(votname)){
+            promptAndAnswers[question][i+1].push(votname);
+          }
+          
+        }
+        break;
       }
     }
+    console.log('ansAndNameListNow: ',promptAndAnswers);
   })
 });
 
