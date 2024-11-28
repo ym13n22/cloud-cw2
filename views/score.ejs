@@ -1,0 +1,26 @@
+<div id="Scores stage">
+    <div class="input-container">
+        <h3> {{ username }}</h3>
+    </div>
+    <div v-if="!VoteScoresDone"  class="host-container">
+        <h5>{{firstScoreQuestion}}</h5>
+    </div>
+
+    <div v-if="VoteScoresDone" class="host-container">
+        <h5> now you just need to wait for everyone else...</h5>
+    </div>
+ 
+    
+    <div v-if="!VoteScoresDone " class="votingButton-container">
+        <button  @click="answer1_voted">{{ScoreContent1}}</button>
+        <button  @click="answer2_voted">{{ScoreContent2}}</button>
+    </div>
+
+
+    
+
+    <div v-if="isHost && !AudienceWaiting" class="buttonRight-container">
+        <button  @click="getScores">next Round</button>
+    </div>
+    
+</div>
