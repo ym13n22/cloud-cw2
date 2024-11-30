@@ -13,10 +13,11 @@ const game_state_now="waiting";
 const players=[];
 const audience=[];
 let currentStage='Auth';
-const prompts=[];//一轮结束删
+let prompts=[];//一轮结束删
 const promptsName=[];
-const promptAndAnswers={};//一轮结束删
-const addedQuestions=[];//一轮结束删
+let promptAndAnswers={};//一轮结束删
+let addedQuestions=[];//一轮结束删
+let roundNumber=0;
 
 //Setup static page handling
 app.set('view engine', 'ejs');
@@ -146,7 +147,8 @@ io.on('connection', socket => {
 
   socket.on('gameStart',()=>{
     currentStage='PromptCollection';
-    io.emit('gameStart');
+    roundNumber=1;
+    io.emit('gameStart',roundNumber);
   })
 
   socket.on('prompt',async promptDetails=>{
@@ -231,6 +233,18 @@ io.on('connection', socket => {
       }
     }
     
+  })
+
+  socket.on('thisRoundEnd',()=>{
+    if(roundNumber<3){
+      prompts=[];
+      promptAndAnswers={};
+      addedQuestions=[];
+      roundNumber=roundNumber+1;
+      io.emit('gameStart',roundNumber);
+    }else{
+      io.emit('FinalScore');
+    }
   })
 });
 

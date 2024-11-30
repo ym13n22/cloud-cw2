@@ -1,5 +1,8 @@
 <div id="Score stage">
     <div class="input-container">
+        <h2> {{ roundTitle }}</h2>
+    </div>
+    <div class="input-container">
         <h3> {{ username }}</h3>
     </div>
     <div v-if="!VoteScoresDone"  class="host-container">
@@ -35,7 +38,7 @@
     
 
     <div v-if="isHost" class="buttonRight-container">
-        <button  @click="thisRoundDone">next Round</button>
+        <button  @click="thisRoundEnd">next </button>
     </div>
     
 </div>

@@ -25,6 +25,9 @@
         <div v-else-if="connected && currentStage === 'ScoresShow'">
             <%- include('score'); -%>
         </div>
+        <div v-else-if="connected && currentStage === 'FinalScore'">
+            <p>is in finalScore stage...</p>
+        </div>
         <div v-else>
             <p>Connecting...</p>
         </div>

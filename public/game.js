@@ -5,6 +5,7 @@ var app = new Vue({
     data: {
         connected: false,
         currentStage:'Auth',
+        roundTitle:'',
         isHost:false,
         messages: [],
         chatmessage: '',
@@ -171,7 +172,8 @@ var app = new Vue({
         getScores(){
             socket.emit('startScores');
         },
-        thisRoundDone(){
+        thisRoundEnd(){
+            socket.emit('thisRoundEnd');
 
         }
         
@@ -328,8 +330,20 @@ function connect() {
         
     });
 
-    socket.on('gameStart',()=>{
+    socket.on('gameStart',roundNmuber=>{
+        if(roundNmuber==1){
+            app.roundTitle='Round 1';
+        }
+        if(roundNmuber==2){
+            app.roundTitle='Round 2';
+        }
+        if(roundNmuber==3){
+            app.roundTitle='Round 3';
+        }
         app.currentStage='PromptCollection';
+        app.promptSubmitted=false;
+        app.promptMessage='';
+        app.prompt='';
     });
 
     socket.on('prompt_response',response=>{
@@ -339,7 +353,8 @@ function connect() {
                 app.promptMessage=response.response_context;
             }
             else{
-                app.promptMessage="";
+                app.promptMessage='';
+                app.prompt='';
                 app.promptSubmitted=true;
             }
         } 
@@ -347,6 +362,8 @@ function connect() {
 
     socket.on('startToAnswer',promptsForPlayers=>{
         app.currentStage='Answer';
+        app.AnswerSubmitted=false;
+        app.answer='';
         const target = promptsForPlayers[app.username];
         if(!target){
             AudienceWaiting=true;
@@ -362,6 +379,7 @@ function connect() {
    
     socket.on('startVoting', (promptAnswer) => {
         app.currentStage = 'Voting';
+        app.VoteSubmitted=false;
         for (const question in promptAnswer) {
             if (promptAnswer[question].includes(app.username)) {
                 delete promptAnswer[question];
@@ -398,6 +416,9 @@ function connect() {
 
     socket.on('sendScores',(promptAndAnswers)=>{
         app.currentStage = 'ScoresShow';
+        app.ScoreContentList1=[];
+        app.ScoreContentList2=[]
+        app.VoteScoresDone=false;
         const [firstQuestion, answers] = Object.entries(promptAndAnswers)[0];
         app.firstScoreQuestion=firstQuestion;
         const resultArray = [];
@@ -459,12 +480,11 @@ function connect() {
 
         const remaining = { ...promptAndAnswers };
         delete remaining[app.firstScoreQuestion];
-        app.promptAndAnswerScoreLeft=remaining;
-        
+        app.promptAndAnswerScoreLeft=remaining;   
+    });
 
-
-
-        
+    socket.on('FinalScore',()=>{
+        app.currentStage='FinalScore';
     })
 
 }
