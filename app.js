@@ -13,9 +13,10 @@ const game_state_now="waiting";
 const players=[];
 const audience=[];
 let currentStage='Auth';
-const prompts=[];
+const prompts=[];//一轮结束删
 const promptsName=[];
-const promptAndAnswers={};
+const promptAndAnswers={};//一轮结束删
+const addedQuestions=[];//一轮结束删
 
 //Setup static page handling
 app.set('view engine', 'ejs');
@@ -217,6 +218,20 @@ io.on('connection', socket => {
     io.emit('sendScores',promptAndAnswers);
     console.log('snedScores with :',promptAndAnswers)
   })
+
+  socket.on('winScore',async(scoreWinDetails)=>{
+    const{nameWin,question}=scoreWinDetails
+    console.log("scoreWinDetails is : ",scoreWinDetails);
+    if(!addedQuestions.includes(question)){
+      addedQuestions.push(question)
+      if(nameWin!=''){
+        const response=await handleFatchUpdate(nameWin,1,100); 
+        console.log('resposne for store scores are: ',response.msg);
+
+      }
+    }
+    
+  })
 });
 
 async function register(registerDetails) {
@@ -224,7 +239,7 @@ async function register(registerDetails) {
   console.log("username :",username,"password :",password);
   if (username && password) {
       try {
-          const response = await handle_fatch("https://cw111.azurewebsites.net/api/player/register", username, password);
+          const response = await handle_fatch('POST',"https://cw111.azurewebsites.net/api/player/register", username, password);
           console.log("response is:", response.msg);
           return { response_message: response.msg, username };
       } catch (error) {
@@ -267,11 +282,12 @@ async function handle_prompt(promptDetails){
   }
 }
 
-async function handle_fatch(endpoint, username, password) {
+async function handle_fatch(method,endpoint, username, password) {
   try {
       console.log('Sending request:', { endpoint, username, password });
       const response = await fetch(endpoint, {
-          method: 'POST',
+          method:method,
+          //method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'x-functions-key': 'jLncRoiYHvcqdgXVSKmMGKSpSpPSDRxgLS-WI5jJASR4AzFujfBAdQ==', // 必须正确无误
@@ -621,6 +637,41 @@ function sendGetPrompt(endpoint, username, language) {
       // End the request
       req.end();
   });
+}
+
+
+async function handleFatchUpdate(username, addToGamesPlayed, addToScore) {
+  const url = "https://cw111.azurewebsites.net/api/player/update";
+  const apiKey = "jLncRoiYHvcqdgXVSKmMGKSpSpPSDRxgLS-WI5jJASR4AzFujfBAdQ==";
+  const payload = {
+      username: username,
+      add_to_games_played: addToGamesPlayed,
+      add_to_score: addToScore,
+  };
+
+  try {
+      const response = await fetch(url, {
+          method: "PUT",
+          headers: {
+              "Content-Type": "application/json",
+              "x-functions-key": apiKey,
+          },
+          body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        console.error("Failed to update player data. Status:", response.status);
+        const errorData = await response.json();
+        console.error("Error details:", errorData);
+        return;
+    }
+
+      const responseData = await response.json();
+      console.log("Player data updated successfully:", responseData);
+      return responseData;
+     
+  } catch (error) {
+      console.error("An error occurred while updating player data:", error);
+  }
 }
 
 

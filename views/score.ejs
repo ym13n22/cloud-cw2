@@ -28,13 +28,14 @@
             </ul>
         </div>
     </div>
+
+    <div v-if="!VoteScoresDone" class="button-container">
+        <button  @click="thisScoreDone">Done</button>
+    </div>
     
 
-
-    
-
-    <div v-if="isHost && !AudienceWaiting" class="buttonRight-container">
-        <button  @click="getScores">next Round</button>
+    <div v-if="isHost" class="buttonRight-container">
+        <button  @click="thisRoundDone">next Round</button>
     </div>
     
 </div>

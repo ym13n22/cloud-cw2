@@ -177,14 +177,31 @@ body {
     text-align: center;
     border-bottom: 1px solid #ddd;
     transition: background-color 0.3s ease;
-  }
-  
+}
+
+/* 第一行加粗 */
+.scrollable-list li:nth-child(1) {
+    font-weight: bold;
+}
+
+/* 第二行橘色 */
+.scrollable-list li:nth-child(2) {
+    color: orange;
+}
+
+/* 第三行红色 */
+.scrollable-list li:nth-child(3) {
+    color: red;
+}
+
+/* 后面其他行保持正常 */
+.scrollable-list li:nth-child(n+4) {
+    color: inherit; /* 继承默认颜色 */
+}
+
+/* 悬停效果（统一所有行） */
 .scrollable-list li:hover {
-    background-color: #ececec; /* 悬停效果 */
-  }
-  
-.scrollable-list li:last-child {
-    border-bottom: none; /* 去掉最后一项的边框 */
-  }
+    background-color: #ececec; /* 悬停背景色 */
+}
 
 

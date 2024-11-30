@@ -29,6 +29,7 @@ var app = new Vue({
         answer2Name:'',
         promptAndAnswerLeft:{},
         allPromptAndAnswers:{},
+        promptAndAnswerScoreLeft:{},
         AnswerSubmitted:false,
         AudienceWaiting:false,
         VoteSubmitted:false,
@@ -169,6 +170,104 @@ var app = new Vue({
         },
         getScores(){
             socket.emit('startScores');
+        },
+        thisRoundDone(){
+
+        }
+        
+        ,
+        thisScoreDone(){
+            let winName='';
+            console.log('ScoreContentList1[2]',this.ScoreContentList1[2]);
+            console.log('ScoreContentList2[2]',this.ScoreContentList2[2]);
+            const score1 = parseInt(this.ScoreContentList1[2]);
+            const score2 = parseInt(this.ScoreContentList2[2]);
+            console.log('score1 ',score1,'score2 ',score2);
+
+            if (score1 > score2) {
+                winName = this.ScoreContentList1[1];
+                console.log('winName: ', winName);
+            } else if (score1 < score2) {
+                winName = this.ScoreContentList2[1];
+                console.log('winName: ', winName);
+            } else {
+                console.log("It's a tie! No winner.");
+            }
+            socket.emit('winScore',{
+                nameWin:winName,
+                question:this.firstScoreQuestion
+            });
+           // console.log("this.promptAndAnswerScoreLeft is: ",this.promptAndAnswerScoreLeft=={});
+            if(this.promptAndAnswerScoreLeft && Object.keys(this.promptAndAnswerScoreLeft).length !== 0){
+                console.log('another score shows')
+                this.ScoreContentList1=[];
+                this.ScoreContentList2=[];
+                const [firstQuestion, answers] = Object.entries(this.promptAndAnswerScoreLeft)[0];
+                app.firstScoreQuestion=firstQuestion;
+                const resultArray = [];
+                console.log('answersare:',answers)
+
+                console.log('answerLength',answers.length)
+    
+                if(answers.length == 4){
+                    resultArray.push(answers[0]);
+                    resultArray.push([]);
+                    resultArray.push(answers[1]);
+                    resultArray.push(answers[2]);
+                    resultArray.push([]);
+                    resultArray.push(answers[3]);
+                }
+                if(answers.length == 5){
+                    if(Array.isArray(answers[1])){
+                    resultArray.push(answers[0]);
+                    resultArray.push(answers[1]);
+                    resultArray.push(answers[2]);
+                    resultArray.push(answers[3]);
+                    resultArray.push([]);
+                    resultArray.push(answers[4]);
+                }else{
+                    resultArray.push(answers[0]);
+                    resultArray.push([]);
+                    resultArray.push(answers[1]);
+                    resultArray.push(answers[2]);
+                    resultArray.push(answers[3]);
+                    resultArray.push(answers[4]);
+
+                    }
+                }
+                if(answers.length == 6){
+                    resultArray=answers;
+                }
+
+                console.log("result is: ",resultArray);
+
+                this.ScoreContentList1.push(resultArray[2]);
+                this.ScoreContentList1.push(resultArray[0]);
+                this.ScoreContentList1.push(resultArray[1].length);
+                resultArray[1].forEach(p => {
+                    this.ScoreContentList1.push(p);
+                });
+
+                console.log('ScoreContentList1',this.ScoreContentList1);
+
+
+                this.ScoreContentList2.push(resultArray[5]);
+                this.ScoreContentList2.push(resultArray[3]);
+                console.log('resultArray[4]',resultArray[4]);
+                this.ScoreContentList2.push(resultArray[4].length);
+                resultArray[4].forEach(p => {
+                    this.ScoreContentList2.push(p);
+                });
+
+                console.log('ScoreContentList2',this.ScoreContentList2)
+
+                const remaining = { ...this.promptAndAnswerScoreLeft };
+                delete remaining[this.firstScoreQuestion];
+                this.promptAndAnswerScoreLeft=remaining;
+
+            }else{
+                this.VoteScoresDone=true;
+            }
         }
 
     }
@@ -302,49 +401,69 @@ function connect() {
         const [firstQuestion, answers] = Object.entries(promptAndAnswers)[0];
         app.firstScoreQuestion=firstQuestion;
         const resultArray = [];
+        console.log('answersare:',answers)
+
+        console.log('answerLength',answers.length)
     
-        // 插入第一位
-        resultArray.push(answers[0]);
-    
-        // 第二位
-        if (Array.isArray(answers[1])) {
+        if(answers.length == 4){
+            resultArray.push(answers[0]);
+            resultArray.push([]);
             resultArray.push(answers[1]);
-        } else {
+            resultArray.push(answers[2]);
             resultArray.push([]);
-        }
-    
-        // 第三位
-        resultArray.push(answers[2] || null); // 如果没有第三位，填 null
-    
-        // 第四位
-        if (answers.length >= 5 && Array.isArray(answers[3])) {
             resultArray.push(answers[3]);
-        } else {
-            resultArray.push([]);
         }
-    
-        // 第五位
-        if (answers.length === 6 && Array.isArray(answers[4])) {
-            resultArray.push(answers[4]);
-        } else {
-            resultArray.push([]);
+        if(answers.length == 5){
+            if(Array.isArray(answers[1])){
+                resultArray.push(answers[0]);
+                resultArray.push(answers[1]);
+                resultArray.push(answers[2]);
+                resultArray.push(answers[3]);
+                resultArray.push([]);
+                resultArray.push(answers[4]);
+            }else{
+                resultArray.push(answers[0]);
+                resultArray.push([]);
+                resultArray.push(answers[1]);
+                resultArray.push(answers[2]);
+                resultArray.push(answers[3]);
+                resultArray.push(answers[4]);
+
+            }
         }
-    
-        // 第六位
-        resultArray.push(answers[answers.length - 1] || null);
+        if(answers.length == 6){
+            resultArray=answers;
+        }
+
+        console.log("result is: ",resultArray);
 
         app.ScoreContentList1.push(resultArray[2]);
-        app.ScoreContentList1.push(0);
-        for(p in resultArray[1]){
+        app.ScoreContentList1.push(resultArray[0]);
+        app.ScoreContentList1.push(resultArray[1].length);
+        resultArray[1].forEach(p => {
             app.ScoreContentList1.push(p);
-        }
+        });
+
+        console.log('ScoreContentList1',app.ScoreContentList1);
 
 
         app.ScoreContentList2.push(resultArray[5]);
-        app.ScoreContentList2.push(3);
-        for(p in resultArray[4]){
+        app.ScoreContentList2.push(resultArray[3]);
+        console.log('resultArray[4]',resultArray[4]);
+        app.ScoreContentList2.push(resultArray[4].length);
+        resultArray[4].forEach(p => {
             app.ScoreContentList2.push(p);
-        }
+        });
+
+        console.log('ScoreContentList2',app.ScoreContentList2)
+
+        const remaining = { ...promptAndAnswers };
+        delete remaining[app.firstScoreQuestion];
+        app.promptAndAnswerScoreLeft=remaining;
+        
+
+
+
         
     })
 
