@@ -38,7 +38,10 @@ var app = new Vue({
         firstVotingQuestion:'',
         firstScoreQuestion:'',
         ScoreContentList1:[],
-        ScoreContentList2:[]
+        ScoreContentList2:[],
+        gold:[],
+        silver:[],
+        bronze:[],
         
     },
     mounted: function() {
@@ -180,6 +183,7 @@ var app = new Vue({
         ,
         thisScoreDone(){
             let winName='';
+            let loseName='';
             console.log('ScoreContentList1[2]',this.ScoreContentList1[2]);
             console.log('ScoreContentList2[2]',this.ScoreContentList2[2]);
             const score1 = parseInt(this.ScoreContentList1[2]);
@@ -188,15 +192,18 @@ var app = new Vue({
 
             if (score1 > score2) {
                 winName = this.ScoreContentList1[1];
+                loseName=this.ScoreContentList2[1];
                 console.log('winName: ', winName);
             } else if (score1 < score2) {
                 winName = this.ScoreContentList2[1];
+                loseName=this.ScoreContentList1[1]
                 console.log('winName: ', winName);
             } else {
                 console.log("It's a tie! No winner.");
             }
             socket.emit('winScore',{
                 nameWin:winName,
+                nameLose:loseName,
                 question:this.firstScoreQuestion
             });
            // console.log("this.promptAndAnswerScoreLeft is: ",this.promptAndAnswerScoreLeft=={});
@@ -270,6 +277,9 @@ var app = new Vue({
             }else{
                 this.VoteScoresDone=true;
             }
+        },
+        thisGameEnd(){
+            socket.emit('newGameStart',this.username);
         }
 
     }
@@ -483,8 +493,35 @@ function connect() {
         app.promptAndAnswerScoreLeft=remaining;   
     });
 
-    socket.on('FinalScore',()=>{
+    socket.on('FinalScore',finalScoreDetails=>{
+        console.log('finalScoreDetails :',finalScoreDetails);
         app.currentStage='FinalScore';
-    })
+        const goldList = finalScoreDetails.gold;
+        const silverList=finalScoreDetails.silver;
+        const bronzeList=finalScoreDetails.bronze;
+        goldList.forEach(p=>{
+            app.gold.push(p.username);
+            const games_played=p.games_played;
+            const total_score=p.total_score;
+            const spg=(total_score/games_played).toFixed(1);
+            app.gold.push(spg);
+        })
 
+        silverList.forEach(p=>{
+            app.silver.push(p.username);
+            const games_played=p.games_played;
+            const total_score=p.total_score;
+            const spg=(total_score/games_played).toFixed(1);
+            app.silver.push(spg);
+        })
+
+        bronzeList.forEach(p=>{
+            app.bronze.push(p.username);
+            const games_played=p.games_played;
+            const total_score=p.total_score;
+            const spg=(total_score/games_played).toFixed(1);
+            app.bronze.push(spg);
+        })
+
+    })
 }

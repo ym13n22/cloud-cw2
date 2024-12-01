@@ -10,8 +10,8 @@ const https = require('https');
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const game_state_now="waiting";
-const players=[];
-const audience=[];
+let players=[];
+let audience=[];
 let currentStage='Auth';
 let prompts=[];//一轮结束删
 const promptsName=[];
@@ -69,24 +69,6 @@ io.on('connection', socket => {
       const {response_message,username}=await register(registerDetails);
       console.log("Register message is:",response_message);
       console.log("username is: ",username)
-      // if(response_message=="OK"&&game_state_now=="waiting"&&players.length<8){
-      //   players.push(username);
-      //   if(players[0]==username){
-      //     io.emit('register_response_OK',{
-      //       hostName:players[0],
-      //       players_now:players,
-      //       isHost:true
-      //     });
-      //   }else{
-      //     io.emit('register_response_OK',{
-      //       hostName:players[0],
-      //       players_now:players,
-      //       isHost:false
-      //     });
-
-      //   }
-        
-      // }
       if(response_message=="OK"&&!players.includes(username)){
         players.push(username);
       }
@@ -108,27 +90,11 @@ io.on('connection', socket => {
       const {response_message,username}=await login(loginDetails);
       console.log("login message is:",response_message);
       console.log("username is: ",username)
-      // if(response_message=="OK"&&game_state_now=="waiting"&&players.length<8){
-      //   players.push(username);
-      //   console.log("players :",players);
-      //   if(players[0]==username){
-      //     io.emit('register_response_OK',{
-      //       hostName:players[0],
-      //       players_now:players,
-      //     });
-      //   }else{
-      //     io.emit('register_response_OK',{
-      //       hostName:players[0],
-      //       players_now:players,
-      //     });
-      //   }
-        
-      // }
       if(response_message=="OK"&&!players.includes(username)&&!audience.includes(username)){
         if(currentStage=='Auth'){
           players.push(username);
         }else{
-          audience.push
+          audience.push(username)
         }
         
       }
@@ -217,25 +183,31 @@ io.on('connection', socket => {
   })
 
   socket.on('startScores',()=>{
+    currentStage='RoundScores';
     io.emit('sendScores',promptAndAnswers);
     console.log('snedScores with :',promptAndAnswers)
   })
 
   socket.on('winScore',async(scoreWinDetails)=>{
-    const{nameWin,question}=scoreWinDetails
+    currentStage='FinalScores';
+    const{nameWin,nameLose,question}=scoreWinDetails
     console.log("scoreWinDetails is : ",scoreWinDetails);
     if(!addedQuestions.includes(question)){
       addedQuestions.push(question)
       if(nameWin!=''){
         const response=await handleFatchUpdate(nameWin,1,100); 
         console.log('resposne for store scores are: ',response.msg);
+        if(nameLose!=''){
+        const response=await handleFatchUpdate(nameLose,1,0); 
+        console.log('resposne for store scores are: ',response.msg);
+        }
 
       }
     }
     
   })
 
-  socket.on('thisRoundEnd',()=>{
+  socket.on('thisRoundEnd',async()=>{
     if(roundNumber<3){
       prompts=[];
       promptAndAnswers={};
@@ -243,8 +215,34 @@ io.on('connection', socket => {
       roundNumber=roundNumber+1;
       io.emit('gameStart',roundNumber);
     }else{
-      io.emit('FinalScore');
+      const response=await fetchPodiumData();
+      console.log('finalScore response',response);
+      io.emit('FinalScore',response);
     }
+  })
+
+  socket.on('newGameStart',username=>{
+    if(currentStage=='FinalScores'){
+      currentStage='Auth';
+      players=[];
+      audience=[];
+    }
+    if(!players.includes(username)&&!audience.includes(username)){
+      if(currentStage=='Auth'){
+        players.push(username);
+      }else{
+        audience.push(username)
+      }
+      
+    }
+    io.emit('register_response',{
+      response_msg:"OK",
+      username:username,
+      currentStage:currentStage,
+      hostName:players[0],
+      players_now:players
+    })
+    
   })
 });
 
@@ -687,6 +685,36 @@ async function handleFatchUpdate(username, addToGamesPlayed, addToScore) {
       console.error("An error occurred while updating player data:", error);
   }
 }
+
+
+async function fetchPodiumData() {
+  const url = "https://cw111.azurewebsites.net/api/utils/podium";
+  const apiKey = "jLncRoiYHvcqdgXVSKmMGKSpSpPSDRxgLS-WI5jJASR4AzFujfBAdQ==";
+
+  try {
+      const response = await fetch(url, {
+          method: "GET", // 请求方法
+          headers: {
+              "Content-Type": "application/json", // 指定内容类型
+              "x-functions-key": apiKey // 添加 API 密钥
+          }
+      });
+
+      // 检查响应是否成功
+      if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // 解析返回的 JSON 数据
+      const data = await response.json();
+      console.log("Podium Data:", data); // 打印返回的数据
+      return data; // 返回数据，供调用者使用
+  } catch (error) {
+      console.error("Error fetching podium data:", error);
+      return null; // 返回空值以防错误
+  }
+}
+
 
 
 

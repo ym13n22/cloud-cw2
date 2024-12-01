@@ -205,3 +205,96 @@ body {
 }
 
 
+.scrol-lists-container {
+    display: flex; /* 水平排列 */
+    gap: 20px; /* 列表之间的间距 */
+    justify-content: center; /* 居中显示 */
+    align-items: flex-start; /* 让顶部对齐 */
+}
+
+/* 每个列表的外层容器 */
+.scrol-list-wrapper {
+    display: flex;
+    flex-direction: column; /* 垂直布局 */
+    align-items: center; /* 标题居中 */
+}
+
+/* 标题样式 */
+.list-title {
+    margin-bottom: 10px;
+    font-weight: bold;
+    text-align: center;
+    font-size: 1.2em;
+    color: #333;
+}
+
+.gold-title {
+    color: gold; /* 中间标题为金色 */
+}
+
+.silver-title {
+    color: silver; /* 左侧标题为银色 */
+}
+
+.bronze-title {
+    color: #cd7f32; /* 右侧标题为铜色 */
+}
+
+/* 列表样式 */
+.scrol-list {
+    list-style-type: none; /* 去掉默认的圆点样式 */
+    margin: 0;
+    padding: 0;
+    overflow-y: auto; /* 垂直滚动 */
+    width: 150px; /* 每个列表的固定宽度 */
+    border: 1px solid #ccc; /* 添加边框 */
+    border-radius: 5px;
+    background-color: #fff; /* 背景色 */
+}
+
+/* 左侧列表样式 */
+.left-list {
+    max-height: 200px; /* 左侧列表高度 */
+}
+
+/* 中间列表样式 */
+.middle-list {
+    max-height: 300px; /* 中间列表高度 */
+}
+
+/* 右侧列表样式 */
+.right-list {
+    max-height: 200px; /* 右侧列表高度 */
+}
+
+/* 列表每项的样式 */
+.scrol-list li {
+    padding: 10px;
+    margin: 0;
+    cursor: pointer;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    transition: background-color 0.3s ease;
+}
+
+/* 奇数行橘色 */
+.scrol-list li:nth-child(odd) {
+    background-color: orange;
+    font-weight: bold; /* 加粗 */
+}
+
+/* 偶数行红色 */
+.scrol-list li:nth-child(even) {
+    background-color: red;
+    color: white; /* 红色背景上文字用白色 */
+}
+
+/* 悬停效果 */
+.scrol-list li:hover {
+    background-color: #ececec;
+}
+
+/* 最后一项去掉边框 */
+.scrol-list li:last-child {
+    border-bottom: none;
+}
