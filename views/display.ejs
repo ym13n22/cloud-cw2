@@ -3,7 +3,7 @@
 
     <%- include('header'); -%>
 
-    <h2 class="title">ECS Example Game</h2>
+    <h2 class="title">ECS Example Game Display</h2>
 
     <div id="game">
         <div v-if="connected">
@@ -11,6 +11,14 @@
                 <li v-for="message in messages">{{message}}</li>
             </ul>
         </div>
+        <div class="host-container">
+            <h4> Waiting for everyone to join!</h4>
+        </div>
+        <ul class="players-list">
+            <li v-for="(player, index) in players" :key="index">
+                {{ player }}
+            </li>
+        </ul>
         <div v-else>
             <p>Connecting...</p>
         </div>

@@ -1,0 +1,23 @@
+<div id="promptConnectionDisplay">
+    <div class="input-container">
+        <h2> Suggest a prompt </h2>
+    </div>
+    <div class="input-container">
+        <h3> {{ roundTitle }}</h3>
+    </div>
+    <ul class="players-list">
+        <h3> Awaiting input</h3>
+        <li v-for="(player, index) in players" :key="index">
+            {{ promptAwaitingDisplay }}
+        </li>
+    </ul>
+
+    <ul class="players-list">
+        <h3> Prompt submitted</h3>
+        <li v-for="(player, index) in players" :key="index">
+            {{ promptSubmittedDisplay }}
+        </li>
+    </ul>
+
+
+</div>
