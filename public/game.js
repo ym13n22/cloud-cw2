@@ -16,7 +16,7 @@ var app = new Vue({
         promptMessage:'',
         hostName: '',
         players: [],
-        audience:[],
+        audiences:[],
         prompt:'',
         prompt_asked:'',
         promptSubmitted:false,
@@ -42,6 +42,15 @@ var app = new Vue({
         gold:[],
         silver:[],
         bronze:[],
+        promptSubmittedDisplay:[],
+        promptAwaitingDisplay:[],
+        numberOfPromptsDisplay:0,
+        answerSubmittedDisplay:[],
+        numberOfAnswerDisplay:0,
+        answerAwaitingDisplay:[],
+        numberOfAnswerAwaitingDisplay:0,
+        promptsDisplay:{}
+
         
     },
     mounted: function() {
@@ -104,6 +113,7 @@ var app = new Vue({
                 this.secondPrompt='';
             }else{
                 this.AnswerSubmitted=true;
+                socket.emit('allAnswerSubmitted',this.username);
             }
         },
         startToVote(){
@@ -176,6 +186,15 @@ var app = new Vue({
             socket.emit('startScores');
         },
         thisRoundEnd(){
+            this.promptSubmittedDisplay=[];
+            this.promptAwaitingDisplay=[];
+            this.numberOfPromptsDisplay=0;
+            this.answerSubmittedDisplay=[];
+            this.numberOfAnswerDisplay=0;
+            this.answerAwaitingDisplay=[];
+            this.numberOfAnswerAwaitingDisplay=0;
+            this.promptsDisplay={};
+            console.log('this.promptSubmittedDisplay ',this.promptSubmittedDisplay);
             socket.emit('thisRoundEnd');
 
         }
@@ -354,10 +373,20 @@ function connect() {
         app.promptSubmitted=false;
         app.promptMessage='';
         app.prompt='';
+        app.promptSubmittedDisplay=[];
+        app.promptAwaitingDisplay=[];
+        app.numberOfPromptsDisplay=0;
+        app.answerSubmittedDisplay=[];
+        app.numberOfAnswerDisplay=0;
+        app.answerAwaitingDisplay=[];
+        app.numberOfAnswerAwaitingDisplay=0;
+        app.promptsDisplay={};
     });
 
     socket.on('prompt_response',response=>{
-        const{response_context,username}=response;
+        const{response_context,username,promptSubDisplay}=response;
+        app.promptSubmittedDisplay=promptSubDisplay;
+        app.numberOfPromptsDisplay=app.promptSubmittedDisplay.length
         if(username==app.username){
             if(response_context!="OK"){
                 app.promptMessage=response.response_context;
@@ -371,23 +400,55 @@ function connect() {
     });
 
     socket.on('startToAnswer',promptsForPlayers=>{
+        const{promptAssigned,answerAwaitingList}=promptsForPlayers
+        console.log('promptAssigned',promptAssigned);
+        app.answerAwaitingDisplay=answerAwaitingList;
+        app.numberOfAnswerAwaitingDisplay=app.answerAwaitingDisplay.length;
         app.currentStage='Answer';
         app.AnswerSubmitted=false;
         app.answer='';
-        const target = promptsForPlayers[app.username];
+        console.log('app.username ',app.username );
+        if(app.username!=''){
+        const target = promptAssigned[app.username];
+        console.log("target :",target);
         if(!target){
             AudienceWaiting=true;
             app.firstPrompt=("do not have the target under the username: ",this.username);
+        }else{
+            if(target[0]){
+                app.firstPrompt =target[0];
+            }
+            
+            if(target[1]){
+                app.secondPrompt=target[1];
+            }
         }
-        app.firstPrompt =target[0];
-        if(target[1]){
-            app.secondPrompt=target[1];
         }
+        
+        
 
     });
 
+    socket.on('allAnswerSubmittedDisplay',allAnswerSubmisstedDisplayDetails=>{
+        const {answerSubmittedList,answerAwaitingList}=allAnswerSubmisstedDisplayDetails;
+        app.answerSubmittedDisplay=answerSubmittedList;
+        app.numberOfAnswerDisplay=app.answerSubmittedDisplay.length;
+        app.answerAwaitingDisplay=answerAwaitingList;
+        app.numberOfAnswerAwaitingDisplay=app.answerAwaitingDisplay.length;
+    })
+
    
     socket.on('startVoting', (promptAnswer) => {
+        app.promptsDisplay= Object.keys(promptAnswer).map((promptText) => {
+            const data = promptAnswer[promptText]; // 对应的列表
+            return {
+              text: promptText,                     // Prompt 文本
+              answer1: data[1] || '',               // 如果 data[1] 不存在，填 ''
+              answer2: data[3] || '',               // 如果 data[3] 不存在，填 ''
+              voteNumber: 0,                        // 初始投票数设为 0
+            };
+          });
+        console.log('app.promptsDisplay ',app.promptsDisplay);
         app.currentStage = 'Voting';
         app.VoteSubmitted=false;
         for (const question in promptAnswer) {
@@ -422,6 +483,15 @@ function connect() {
         app.promptAndAnswerLeft = remaining;
         
     });
+
+    socket.on('voteSaved',question=>{
+        for (const prompt of app.promptsDisplay) {
+            if (prompt.text === question) {
+              prompt.voteNumber += 1;
+              break;                
+            }
+          }
+    })
         
 
     socket.on('sendScores',(promptAndAnswers)=>{
@@ -523,5 +593,11 @@ function connect() {
             app.bronze.push(spg);
         })
 
+    });
+
+    socket.on('newGameDisplay',()=>{
+        if(app.username==''){
+            app.currentStage='Waiting';
+        }
     })
 }

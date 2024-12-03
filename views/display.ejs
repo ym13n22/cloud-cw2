@@ -6,19 +6,44 @@
     <h2 class="title">ECS Example Game Display</h2>
 
     <div id="game">
-        <div v-if="connected">
+        <div v-if="connected && currentStage != 'PromptCollection' && currentStage != 'Answer' && currentStage != 'Voting' && currentStage != 'ScoresShow' && currentStage != 'FinalScore' ">
             <ul id="chat">
                 <li v-for="message in messages">{{message}}</li>
             </ul>
+            <div class="host-container">
+                <h4> Waiting for everyone to join!</h4>
+                <h5> players</h5>
+            </div>
+            <ul class="players-list">
+                <li v-for="(player, index) in players" :key="index">
+                    {{ player }}
+                </li>
+            </ul>
+            <div class="host-container">
+                <h5> Audience</h5>
+            </div>
+            <ul class="players-list">
+                <li v-for="(audience, index) in audiences" :key="index">
+                    {{ audience }}
+                </li>
+            </ul>
         </div>
-        <div class="host-container">
-            <h4> Waiting for everyone to join!</h4>
+        
+        <div v-else-if="connected && currentStage === 'PromptCollection'">
+            <%- include('promptCollectDisplay'); -%>
         </div>
-        <ul class="players-list">
-            <li v-for="(player, index) in players" :key="index">
-                {{ player }}
-            </li>
-        </ul>
+        <div v-else-if="connected && currentStage === 'Answer'">
+            <%- include('answerStageDisplay'); -%>
+        </div>
+        <div v-else-if="connected && currentStage === 'Voting'">
+            <%- include('VotingDisplay'); -%>
+        </div>
+        <div v-else-if="connected && currentStage === 'ScoresShow'">
+            <%- include('score'); -%>
+        </div>
+        <div v-else-if="connected && currentStage === 'FinalScore'">
+            <%- include('FinalScores'); -%>
+        </div>
         <div v-else>
             <p>Connecting...</p>
         </div>

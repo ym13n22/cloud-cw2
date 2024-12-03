@@ -1,0 +1,50 @@
+<div id="VotingDisplay">
+    <div class="host-container">
+        <h4> Waiting for everyone to join!</h4>
+        <h5> players</h5>
+    </div>
+    <ul class="players-list">
+        <li v-for="(player, index) in players" :key="index">
+            {{ player }}
+        </li>
+    </ul>
+    <div class="host-container">
+        <h5> Audience</h5>
+    </div>
+    <ul class="players-list">
+        <li v-for="(audience, index) in audiences" :key="index">
+            {{ audience }}
+        </li>
+    </ul>
+    <div class="input-container">
+        <h2> Voting in progress </h2>
+    </div>
+    <div class="input-container">
+        <h3> {{ roundTitle }}</h3>
+    </div>
+    
+    <!-- 滑动列表容器 -->
+    <div class="scrollableVoteDisplay-list">
+        <!-- 每个格子 -->
+        <div class="grid-item" v-for="(prompt, index) in promptsDisplay" :key="index">
+            <!-- 显示 prompt -->
+            <h4>{{ prompt.text }}</h4>
+    
+            <!-- 答案按钮 -->
+            <div class="answers">
+                <button @click="voteForAnswer(index, 'answer1')">
+                    {{ prompt.answer1 }}
+                </button>
+                <button @click="voteForAnswer(index, 'answer2')">
+                    {{ prompt.answer2 }}
+                </button>
+            </div>
+    
+            <!-- 投票数 -->
+            <p>{{ prompt.voteNumber }} votes received</p>
+        </div>
+    </div>
+    
+
+
+</div>

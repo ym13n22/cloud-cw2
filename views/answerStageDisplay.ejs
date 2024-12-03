@@ -1,4 +1,4 @@
-<div id="promptConnectionDisplay">
+<div id="answerStageDisplay">
     <div class="host-container">
         <h4> Waiting for everyone to join!</h4>
         <h5> players</h5>
@@ -17,17 +17,27 @@
         </li>
     </ul>
     <div class="input-container">
-        <h2> Prompt suggestion </h2>
+        <h2> Answers stage </h2>
     </div>
     <div class="input-container">
         <h3> {{ roundTitle }}</h3>
     </div>
     <div class="input-container">
-        <h3> {{ numberOfPromptsDisplay }} have been received from</h3>
+        <h3> {{ numberOfAnswerDisplay }} answers have been received from</h3>
     </div>
 
     <ul class="players-list">
-        <li v-for="(player, index) in promptSubmittedDisplay" :key="index">
+        <li v-for="(player, index) in answerSubmittedDisplay" :key="index">
+            {{ player }}
+        </li>
+    </ul>
+
+    <div class="input-container">
+        <h3> {{ numberOfAnswerAwaitingDisplay }} answers is awaiting ...</h3>
+    </div>
+
+    <ul class="players-list">
+        <li v-for="(player, index) in answerAwaitingDisplay" :key="index">
             {{ player }}
         </li>
     </ul>

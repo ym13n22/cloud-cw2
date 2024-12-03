@@ -18,6 +18,10 @@ const promptsName=[];
 let promptAndAnswers={};//一轮结束删
 let addedQuestions=[];//一轮结束删
 let roundNumber=0;
+let promptSubmittedDisplay=[];
+let promptAwaitingDisplay=[];
+let answerSubmittedDisplay=[];//一轮结束删
+let awaitingAnswer=[];
 
 //Setup static page handling
 app.set('view engine', 'ejs');
@@ -125,17 +129,23 @@ io.on('connection', socket => {
     if(response=="OK"){
       prompts.push(prompt);
       promptsName.push(username);
+      promptSubmittedDisplay.push(username);
     }
     io.emit('prompt_response',{
       response_context:response,
-      username:username
+      username:username,
+      promptSubDisplay:promptSubmittedDisplay
     });
   })
 
   socket.on('startToAnswer',async language=>{
     currentStage='Answer';
     const assigned=await assignPrompt(language);
-    io.emit('startToAnswer',assigned);
+    awaitingAnswer= [...players];
+    io.emit('startToAnswer',{
+      promptAssigned:assigned,
+      answerAwaitingList:awaitingAnswer
+    });
   })
 
   socket.on('answerSubmitted',answerDetails=>{
@@ -152,6 +162,19 @@ io.on('connection', socket => {
       //console.log("answerDetails saved with ",answerDetails);
     }
    
+  })
+
+  socket.on('allAnswerSubmitted',allAnswerDoneName=>{
+      answerSubmittedDisplay.push(allAnswerDoneName);
+      const index = awaitingAnswer.indexOf(allAnswerDoneName);
+      if (index !== -1) {
+        awaitingAnswer.splice(index, 1);
+      }
+      console.log('awaitingAnswer',awaitingAnswer);
+      io.emit('allAnswerSubmittedDisplay',{
+        answerSubmittedList:answerSubmittedDisplay,
+        answerAwaitingList:awaitingAnswer
+      });
   })
 
   socket.on('startVoting',()=>{
@@ -180,6 +203,7 @@ io.on('connection', socket => {
       }
     }
     console.log('ansAndNameListNow: ',promptAndAnswers);
+    io.emit('voteSaved',question);
   })
 
   socket.on('startScores',()=>{
@@ -213,6 +237,9 @@ io.on('connection', socket => {
       promptAndAnswers={};
       addedQuestions=[];
       roundNumber=roundNumber+1;
+      promptSubmittedDisplay=[];
+      answerSubmittedDisplay=[];
+      awaitingAnswer=[];
       io.emit('gameStart',roundNumber);
     }else{
       const response=await fetchPodiumData();
@@ -226,6 +253,10 @@ io.on('connection', socket => {
       currentStage='Auth';
       players=[];
       audience=[];
+      promptSubmittedDisplay=[];
+      answerSubmittedDisplay=[];
+      awaitingAnswer=[];
+      io.emit('newGameDisplay');
     }
     if(!players.includes(username)&&!audience.includes(username)){
       if(currentStage=='Auth'){
