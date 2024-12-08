@@ -49,7 +49,8 @@ var app = new Vue({
         numberOfAnswerDisplay:0,
         answerAwaitingDisplay:[],
         numberOfAnswerAwaitingDisplay:0,
-        promptsDisplay:{}
+        promptsDisplay:{},
+        submitPromptHalf:false
 
         
     },
@@ -97,6 +98,9 @@ var app = new Vue({
                 
             }
         },
+        submitPrompt(){
+            this.submitPromptHalf=true;
+        },
         startToAnswer(){
             socket.emit('startToAnswer',this.language);
 
@@ -126,7 +130,8 @@ var app = new Vue({
                 ansname:this.answer1Name,
                 votname:this.username
             })
-            if(!this.promptAndAnswerLeft=={}){
+            console.log('this.promptAndAnswerLeft ',this.promptAndAnswerLeft);
+            if(Object.keys(this.promptAndAnswerLeft).length > 0){
             const [firstQuestion, answers] = Object.entries(this.promptAndAnswerLeft)[0];
             
             this.firstVotingQuestion = firstQuestion;
@@ -148,6 +153,7 @@ var app = new Vue({
             this.promptAndAnswerLeft = remaining;
             }else{
                 this.VoteSubmitted=true;
+                socket.emit('allVotesDone',this.username);
             }
         },
         answer2_voted(){
@@ -157,7 +163,8 @@ var app = new Vue({
                 ansname:this.answer2Name,
                 votname:this.username
             })
-            if(!this.promptAndAnswerLeft=={}){
+            console.log('this.promptAndAnswerLeft ',this.promptAndAnswerLeft);
+            if(Object.keys(this.promptAndAnswerLeft).length > 0){
                 const [firstQuestion, answers] = Object.entries(this.promptAndAnswerLeft)[0];
                 
                 this.firstVotingQuestion = firstQuestion;
@@ -179,6 +186,7 @@ var app = new Vue({
                 this.promptAndAnswerLeft = remaining;
                 }else{
                     this.VoteSubmitted=true;
+                    socket.emit('allVotesDone',this.username);
                 }
             
         },
@@ -264,7 +272,9 @@ var app = new Vue({
                     }
                 }
                 if(answers.length == 6){
-                    resultArray=answers;
+                    answers.forEach(p=>{
+                        resultArray.push(p)
+                    });
                 }
 
                 console.log("result is: ",resultArray);
@@ -330,9 +340,25 @@ function connect() {
         app.handleChat(message);
     });
     socket.on('register_response',response =>{
-        const{response_msg,username,currentStage,hostName,players_now}=response
+        const{response_msg,username,currentStage,hostName,players_now,audience_now,roundNumber_now}=response
         app.hostName=hostName;
         app.players=players_now;
+        app.audiences=audience_now;
+        if(roundNumber_now==1){
+            app.roundTitle='Round 1';
+        }
+        if(roundNumber_now==2){
+            app.roundTitle='Round 2';
+        }
+        if(roundNumber_now==3){
+            app.roundTitle='Round 3';
+        }
+        if(app.audiences.includes(app.username)){
+            app.AudienceWaiting=true;
+        }else{
+            app.AudienceWaiting=false;
+        }
+        
         if(username==app.username){
             if(response_msg!="OK"){
                 app.statusMessage=response_msg
@@ -341,8 +367,19 @@ function connect() {
                     app.currentStage='Waiting';
                     if(app.username==hostName){
                         app.isHost=true;
+                    }else{
+                        app.isHost=false;
                     }
+                }if(currentStage=='PromptCollection'){
+                    app.currentStage='PromptCollection';
+                    app.AudienceWaiting=true;
+                    app.isHost=false;
                 }
+                if(currentStage=='Answer'){
+                    app.currentStage='Answer';
+                    app.AudienceWaiting=true;
+                    app.isHost=false;
+                }//voting 改后端逻辑
             }
         }
         
@@ -395,6 +432,7 @@ function connect() {
                 app.promptMessage='';
                 app.prompt='';
                 app.promptSubmitted=true;
+                app.submitPromptHalf=false;
             }
         } 
     });
@@ -533,7 +571,9 @@ function connect() {
             }
         }
         if(answers.length == 6){
-            resultArray=answers;
+            answers.forEach(p=>{
+                resultArray.push(p)
+            });
         }
 
         console.log("result is: ",resultArray);
@@ -566,6 +606,9 @@ function connect() {
     socket.on('FinalScore',finalScoreDetails=>{
         console.log('finalScoreDetails :',finalScoreDetails);
         app.currentStage='FinalScore';
+        app.gold=[];
+        app.silver=[];
+        app.bronze=[];
         const goldList = finalScoreDetails.gold;
         const silverList=finalScoreDetails.silver;
         const bronzeList=finalScoreDetails.bronze;
@@ -592,6 +635,9 @@ function connect() {
             const spg=(total_score/games_played).toFixed(1);
             app.bronze.push(spg);
         })
+
+        app.isHost=false;
+        app.roundTitle='';
 
     });
 

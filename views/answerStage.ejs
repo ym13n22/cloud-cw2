@@ -3,6 +3,9 @@
         <h2> {{ roundTitle }}</h2>
     </div>
     <div class="input-container">
+        <h2> Answers stage </h2>
+    </div>
+    <div class="input-container">
         <h3> {{ username }}</h3>
     </div>
     <div v-if="!AnswerSubmitted"  class="host-container">
@@ -27,6 +30,20 @@
     
     <div v-if="!AnswerSubmitted && !AudienceWaiting" class="button-container">
         <button  @click="answer_submitted">Done</button>
+    </div>
+
+    <div  class="buttonLeft-container">
+        <button  @click="submitPrompt">submit prompt</button>
+    </div>
+
+    <div v-if="submitPromptHalf" class="host-container">
+        <h5> think of a funny question or prompt</h5>
+    </div>
+    <div v-if="submitPromptHalf" class="prompt-container">
+        <input type="text" id="prompt" v-model="prompt">
+    </div>
+    <div v-if="submitPromptHalf" class="button-container">
+        <button  @click="prompt_submitted">Done</button>
     </div>
 
     

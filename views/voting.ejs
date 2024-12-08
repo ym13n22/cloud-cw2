@@ -19,6 +19,20 @@
         <button  @click="answer2_voted">{{answer2}}</button>
     </div>
 
+    <div  class="buttonLeft-container">
+        <button  @click="submitPrompt">submit prompt</button>
+    </div>
+
+    <div v-if="submitPromptHalf" class="host-container">
+        <h5> think of a funny question or prompt</h5>
+    </div>
+    <div v-if="submitPromptHalf" class="prompt-container">
+        <input type="text" id="prompt" v-model="prompt">
+    </div>
+    <div v-if="submitPromptHalf" class="button-container">
+        <button  @click="prompt_submitted">Done</button>
+    </div>
+
 
     
 

@@ -22,6 +22,7 @@ let promptSubmittedDisplay=[];
 let promptAwaitingDisplay=[];
 let answerSubmittedDisplay=[];//一轮结束删
 let awaitingAnswer=[];
+let votedDoneDisplay=[];
 
 //Setup static page handling
 app.set('view engine', 'ejs');
@@ -72,16 +73,38 @@ io.on('connection', socket => {
     try{
       const {response_message,username}=await register(registerDetails);
       console.log("Register message is:",response_message);
-      console.log("username is: ",username)
-      if(response_message=="OK"&&!players.includes(username)){
-        players.push(username);
+      console.log("username is: ",username);
+      console.log("players.length: ",players.length);
+      console.log('!players.includes(username)',!players.includes(username));
+      console.log('!audience.includes(username)',!audience.includes(username));
+      if(response_message=="OK"&&!players.includes(username)&&!audience.includes(username)){
+        if(currentStage=='Auth'&&players.length<5){///要改成8
+          players.push(username);
+        }else{
+          audience.push(username);
+        }
+        
+      }
+      console.log('currentStage is: ',currentStage);
+      if(currentStage=='Voting'){
+        io.emit('startVoting',promptAndAnswers);
+      }
+      if(currentStage=='RoundScores'){
+        io.emit('sendScores',promptAndAnswers);
+      }
+      if(currentStage=='FinalScores'){
+        const response=await fetchPodiumData();
+        console.log('finalScore response',response);
+        io.emit('FinalScore',response);
       }
       io.emit('register_response',{
         response_msg:response_message,
         username:username,
         currentStage:currentStage,
         hostName:players[0],
-        players_now:players
+        players_now:players,
+        audience_now:audience,
+        roundNumber_now:roundNumber
       })
     }catch(error){
       console.error("Registration failed:", error);
@@ -93,21 +116,40 @@ io.on('connection', socket => {
     try{
       const {response_message,username}=await login(loginDetails);
       console.log("login message is:",response_message);
-      console.log("username is: ",username)
+      console.log("username is: ",username);
+      console.log("players.length: ",players.length);
+      
       if(response_message=="OK"&&!players.includes(username)&&!audience.includes(username)){
-        if(currentStage=='Auth'){
+        if(currentStage=='Auth'&&players.length<3){///要改成8
           players.push(username);
         }else{
           audience.push(username)
         }
         
       }
+      console.log("audience now: ",audience);
+      console.log('currentStage is: ',currentStage);
+      if(currentStage=='Voting'){
+        io.emit('startVoting',promptAndAnswers);
+        console.log('startVoting ',promptAndAnswers)
+      }
+      if(currentStage=='RoundScores'){
+        io.emit('sendScores',promptAndAnswers);
+        console.log('sendScores ',promptAndAnswers)
+      }
+      if(currentStage=='FinalScores'){
+        const response=await fetchPodiumData();
+        console.log('finalScore response',response);
+        io.emit('FinalScore',response);
+      }
       io.emit('register_response',{
         response_msg:response_message,
         username:username,
         currentStage:currentStage,
         hostName:players[0],
-        players_now:players
+        players_now:players,
+        audience_now:audience,
+        roundNumber_now:roundNumber
       })
     }catch(error){
       console.error("login failed:", error);
@@ -119,6 +161,10 @@ io.on('connection', socket => {
     currentStage='PromptCollection';
     roundNumber=1;
     io.emit('gameStart',roundNumber);
+    players.forEach(async p=>{
+      const response=await handleFatchUpdate(p,1,0); 
+      console.log('resposne for add one round is: ',response.msg);
+    })
   })
 
   socket.on('prompt',async promptDetails=>{
@@ -136,6 +182,16 @@ io.on('connection', socket => {
       username:username,
       promptSubDisplay:promptSubmittedDisplay
     });
+    if(promptSubmittedDisplay.length==((players.length)+(audience.length))){
+      currentStage='Answer';
+      const language="en"
+      const assigned=await assignPrompt(language);
+      awaitingAnswer= [...players];
+      io.emit('startToAnswer',{
+        promptAssigned:assigned,
+        answerAwaitingList:awaitingAnswer
+      });
+    }
   })
 
   socket.on('startToAnswer',async language=>{
@@ -175,6 +231,11 @@ io.on('connection', socket => {
         answerSubmittedList:answerSubmittedDisplay,
         answerAwaitingList:awaitingAnswer
       });
+      if(awaitingAnswer.length==0){
+        currentStage='Voting'
+        console.log("promptAndAnswer: ",promptAndAnswers);
+        io.emit('startVoting',promptAndAnswers);
+      }
   })
 
   socket.on('startVoting',()=>{
@@ -206,6 +267,17 @@ io.on('connection', socket => {
     io.emit('voteSaved',question);
   })
 
+  socket.on('allVotesDone',voteDoneName=>{
+    if(!votedDoneDisplay.includes(voteDoneName)){
+      votedDoneDisplay.push(voteDoneName)
+    }
+    if(votedDoneDisplay.length==(players.length)+(audience.length)){
+      currentStage='RoundScores';
+      io.emit('sendScores',promptAndAnswers);
+      console.log('snedScores with :',promptAndAnswers)
+    }
+  })
+
   socket.on('startScores',()=>{
     currentStage='RoundScores';
     io.emit('sendScores',promptAndAnswers);
@@ -213,16 +285,15 @@ io.on('connection', socket => {
   })
 
   socket.on('winScore',async(scoreWinDetails)=>{
-    currentStage='FinalScores';
     const{nameWin,nameLose,question}=scoreWinDetails
     console.log("scoreWinDetails is : ",scoreWinDetails);
     if(!addedQuestions.includes(question)){
       addedQuestions.push(question)
       if(nameWin!=''){
-        const response=await handleFatchUpdate(nameWin,1,100); 
+        const response=await handleFatchUpdate(nameWin,0,100*roundNumber); 
         console.log('resposne for store scores are: ',response.msg);
         if(nameLose!=''){
-        const response=await handleFatchUpdate(nameLose,1,0); 
+        const response=await handleFatchUpdate(nameLose,0,0); 
         console.log('resposne for store scores are: ',response.msg);
         }
 
@@ -240,15 +311,17 @@ io.on('connection', socket => {
       promptSubmittedDisplay=[];
       answerSubmittedDisplay=[];
       awaitingAnswer=[];
+      votedDoneDisplay=[];
       io.emit('gameStart',roundNumber);
     }else{
+      currentStage='FinalScores';
       const response=await fetchPodiumData();
       console.log('finalScore response',response);
       io.emit('FinalScore',response);
     }
   })
 
-  socket.on('newGameStart',username=>{
+  socket.on('newGameStart',async username=>{
     if(currentStage=='FinalScores'){
       currentStage='Auth';
       players=[];
@@ -259,20 +332,40 @@ io.on('connection', socket => {
       io.emit('newGameDisplay');
     }
     if(!players.includes(username)&&!audience.includes(username)){
-      if(currentStage=='Auth'){
+      if(currentStage=='Auth'&&players.length<3&&username!=''){///要改成8
         players.push(username);
       }else{
         audience.push(username)
       }
       
     }
+    console.log('currentStage is: ',currentStage);
+      if(currentStage=='Voting'){
+        io.emit('startVoting',promptAndAnswers);
+      }
+      if(currentStage=='RoundScores'){
+        io.emit('sendScores',promptAndAnswers);
+      }
+      if(currentStage=='FinalScores'){
+        const response=await fetchPodiumData();
+        console.log('finalScore response',response);
+        io.emit('FinalScore',response);
+      }
     io.emit('register_response',{
       response_msg:"OK",
       username:username,
       currentStage:currentStage,
       hostName:players[0],
-      players_now:players
+      players_now:players,
+      audience_now: audience,
+      roundNumber_now:roundNumber
     })
+    console.log('newGameStart ',(
+    username,
+    currentStage,
+    players[0],
+    players,
+    audience))
     
   })
 });

@@ -11,6 +11,16 @@
             {{ player }}
         </li>
     </ul>
+
+    <div v-if="audiences.length!=0" class="host-container">
+        <h4> Audience</h4>
+    </div>
+
+    <ul class="players-list">
+        <li v-for="(audience, index) in audiences" :key="index">
+            {{ audience }}
+        </li>
+    </ul>
     
     
     

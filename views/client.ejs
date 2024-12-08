@@ -23,10 +23,29 @@
             <%- include('Voting'); -%>
         </div>
         <div v-else-if="connected && currentStage === 'ScoresShow'">
-            <%- include('score'); -%>
+            <p>this round end waiting for check and save the outcome...</p>
+            <div  class="buttonLeft-container">
+                <button  @click="submitPrompt">submit prompt</button>
+            </div>
+        
+            <div v-if="submitPromptHalf" class="host-container">
+                <h5> think of a funny question or prompt</h5>
+            </div>
+            <div v-if="submitPromptHalf" class="prompt-container">
+                <input type="text" id="prompt" v-model="prompt">
+            </div>
+            <div v-if="submitPromptHalf" class="button-container">
+                <button  @click="prompt_submitted">Done</button>
+            </div>
+            <div v-if="isHost" class="buttonRight-container">
+                <button  @click="thisRoundEnd">next </button>
+            </div>
         </div>
         <div v-else-if="connected && currentStage === 'FinalScore'">
-            <%- include('FinalScores'); -%>
+            <p>game over...</p>
+            <div class="buttonRight-container" v-if="username !==''">
+                <button @click="thisGameEnd">Start the New Game</button>
+            </div>
         </div>
         <div v-else>
             <p>Connecting...</p>

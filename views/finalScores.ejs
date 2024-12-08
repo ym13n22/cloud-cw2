@@ -3,6 +3,20 @@
         <h2>Final Score</h2>
     </div>
 
+    <ul class="players-list">
+        <li v-for="(player, index) in players" :key="index">
+            {{ player }}
+        </li>
+    </ul>
+    <div class="host-container">
+        <h5> Audience</h5>
+    </div>
+    <ul class="players-list">
+        <li v-for="(audience, index) in audiences" :key="index">
+            {{ audience }}
+        </li>
+    </ul>
+
     <div class="scoreList-container">
         <!-- 三个列表的容器 -->
         <div class="scrol-lists-container">

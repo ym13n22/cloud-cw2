@@ -12,6 +12,20 @@
     <div v-if="VoteScoresDone" class="host-container">
         <h5> now you just need to wait for everyone else...</h5>
     </div>
+
+    <ul class="players-list">
+        <li v-for="(player, index) in players" :key="index">
+            {{ player }}
+        </li>
+    </ul>
+    <div class="host-container">
+        <h5> Audience</h5>
+    </div>
+    <ul class="players-list">
+        <li v-for="(audience, index) in audiences" :key="index">
+            {{ audience }}
+        </li>
+    </ul>
  
     
     <div v-if="!VoteScoresDone" class="scoreList-container">
