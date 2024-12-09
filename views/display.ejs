@@ -12,6 +12,7 @@
             </ul>
             <div class="host-container">
                 <h4> Waiting for everyone to join!</h4>
+                <a href="https://quiplash-cloud.nw.r.appspot.com/" class="join-link">Start Now</a>
                 <h5> players</h5>
             </div>
             <ul class="players-list">
@@ -42,7 +43,7 @@
             <%- include('score'); -%>
         </div>
         <div v-else-if="connected && currentStage === 'FinalScore'">
-            <%- include('FinalScores'); -%>
+            <%- include('finalScores'); -%>
         </div>
         <div v-else>
             <p>Connecting...</p>

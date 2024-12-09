@@ -20,7 +20,7 @@
             <%- include('answerStage'); -%>
         </div>
         <div v-else-if="connected && currentStage === 'Voting'">
-            <%- include('Voting'); -%>
+            <%- include('voting'); -%>
         </div>
         <div v-else-if="connected && currentStage === 'ScoresShow'">
             <p>this round end waiting for check and save the outcome...</p>

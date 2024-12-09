@@ -78,7 +78,7 @@ io.on('connection', socket => {
       console.log('!players.includes(username)',!players.includes(username));
       console.log('!audience.includes(username)',!audience.includes(username));
       if(response_message=="OK"&&!players.includes(username)&&!audience.includes(username)){
-        if(currentStage=='Auth'&&players.length<5){///要改成8
+        if(currentStage=='Auth'&&players.length<8){///要改成8
           players.push(username);
         }else{
           audience.push(username);
@@ -120,7 +120,7 @@ io.on('connection', socket => {
       console.log("players.length: ",players.length);
       
       if(response_message=="OK"&&!players.includes(username)&&!audience.includes(username)){
-        if(currentStage=='Auth'&&players.length<3){///要改成8
+        if(currentStage=='Auth'&&players.length<8){///要改成8
           players.push(username);
         }else{
           audience.push(username)
@@ -332,7 +332,7 @@ io.on('connection', socket => {
       io.emit('newGameDisplay');
     }
     if(!players.includes(username)&&!audience.includes(username)){
-      if(currentStage=='Auth'&&players.length<3&&username!=''){///要改成8
+      if(currentStage=='Auth'&&players.length<8&&username!=''){///要改成8
         players.push(username);
       }else{
         audience.push(username)

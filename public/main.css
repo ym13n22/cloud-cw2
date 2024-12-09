@@ -357,3 +357,11 @@ body {
     font-size: 14px;
     color: #555;
 }
+.join-link {
+    color: blue;
+    text-decoration: underline;
+    margin-left: 10px; /* 调整与前面文本的间距 */
+}
+.join-link:hover {
+    text-decoration: none; /* 鼠标悬停时去掉下划线 */
+}
