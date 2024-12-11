@@ -41,6 +41,7 @@ var app = new Vue({
         firstScoreQuestion:'',
         ScoreContentList1:[],
         ScoreContentList2:[],
+        roundScoresRecord:{},
         gold:[],
         silver:[],
         bronze:[],
@@ -307,6 +308,7 @@ var app = new Vue({
 
             }else{
                 this.VoteScoresDone=true;
+                socket.emit('allVoteScoresDone');
             }
         },
         thisGameEnd(){
@@ -533,6 +535,10 @@ function connect() {
               break;                
             }
           }
+    });
+
+    socket.on('allVoteScoresDone',roundScoresRecord=>{
+        app.roundScoresRecord=roundScoresRecord
     })
         
 

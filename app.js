@@ -24,6 +24,7 @@ let promptAwaitingDisplay=[];
 let answerSubmittedDisplay=[];//一轮结束删
 let awaitingAnswer=[];
 let votedDoneDisplay=[];
+let roundScoresRecord={};
 
 //Setup static page handling
 app.set('view engine', 'ejs');
@@ -202,6 +203,7 @@ io.on('connection', socket => {
   socket.on('startToAnswer',async language=>{
     currentStage='Answer';
     const assigned=await assignPrompt(language);
+    
     awaitingAnswer= [...players];
     io.emit('startToAnswer',{
       promptAssigned:assigned,
@@ -241,6 +243,13 @@ io.on('connection', socket => {
         currentStage='Voting'
         console.log("promptAndAnswer: ",promptAndAnswers);
         io.emit('startVoting',promptAndAnswers);
+        console.log('players ',players);
+        players.forEach(p => {
+          if (roundScoresRecord[p] === undefined) {
+            roundScoresRecord[p] = Number(0);  // 如果没有 p，初始化为 0
+          }
+        });
+        console.log('roundScoresRecord: ',roundScoresRecord);
       }
   })
 
@@ -248,6 +257,13 @@ io.on('connection', socket => {
     currentStage='Voting'
     console.log("promptAndAnswer: ",promptAndAnswers);
     io.emit('startVoting',promptAndAnswers);
+    console.log('players ',players);
+    players.forEach(p => {
+      if (roundScoresRecord[p] === undefined) {
+        roundScoresRecord[p] = Number(0);  // 如果没有 p，初始化为 0
+      }
+    });
+    console.log('roundScoresRecord: ',roundScoresRecord);
   })
 
   socket.on('voted',votedDetails=>{
@@ -292,6 +308,11 @@ io.on('connection', socket => {
 
   socket.on('winScore',async(scoreWinDetails)=>{
     const{nameWin,nameLose,question}=scoreWinDetails
+    
+      let currentRoundRecord=Number(roundScoresRecord[nameWin]);
+      let scoreNow=currentRoundRecord+100*roundNumber;
+      roundScoresRecord[nameWin] = scoreNow;
+  
     console.log("scoreWinDetails is : ",scoreWinDetails);
     if(!addedQuestions.includes(question)){
       addedQuestions.push(question)
@@ -306,6 +327,11 @@ io.on('connection', socket => {
       }
     }
     
+  })
+
+  socket.on('allVoteScoresDone',()=>{
+    io.emit('allVoteScoresDone',roundScoresRecord);
+    console.log('roundScoresRecord ',roundScoresRecord);
   })
 
   socket.on('thisRoundEnd',async()=>{
@@ -327,14 +353,21 @@ io.on('connection', socket => {
     }
   })
 
+ 
+
   socket.on('newGameStart',async username=>{
     if(currentStage=='FinalScores'){
+      prompts=[];
+      addedQuestions=[];
       currentStage='Auth';
+      roundScoresRecord={};
       players=[];
       audience=[];
+      promptAndAnswers={};
       promptSubmittedDisplay=[];
       answerSubmittedDisplay=[];
       awaitingAnswer=[];
+      votedDoneDisplay=[];
       io.emit('newGameDisplay');
     }
     if(!players.includes(username)&&!audience.includes(username)){

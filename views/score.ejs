@@ -5,14 +5,10 @@
     <div class="input-container">
         <h3> {{ username }}</h3>
     </div>
-    <div v-if="!VoteScoresDone"  class="host-container">
-        <h5>{{firstScoreQuestion}}</h5>
-    </div>
+    
 
-    <div v-if="VoteScoresDone" class="host-container">
-        <h5> now you just need to wait for everyone else...</h5>
-    </div>
-
+    
+<div v-if="username===''">
     <ul class="players-list">
         <li v-for="(player, index) in players" :key="index">
             {{ player }}
@@ -26,6 +22,51 @@
             {{ audience }}
         </li>
     </ul>
+</div>
+    
+
+
+<div v-if="!isHost && username!=''">
+    <p>this round end waiting for check and save the outcome...</p>
+    <div  class="buttonLeft-container">
+        <button  @click="submitPrompt">submit prompt</button>
+    </div>
+
+    <div v-if="submitPromptHalf" class="host-container">
+        <h5> think of a funny question or prompt</h5>
+    </div>
+    <div v-if="submitPromptHalf" class="prompt-container">
+        <input type="text" id="prompt" v-model="prompt">
+    </div>
+    <div v-if="submitPromptHalf" class="button-container">
+        <button  @click="prompt_submitted">Done</button>
+    </div>
+    
+</div>
+    
+<div v-if="isHost || username===''">
+
+    <div v-if="VoteScoresDone" class="host-container">
+        <table class="score-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(score, name) in roundScoresRecord" :key="name">
+                <td>{{ name }}</td>
+                <td>{{ score }}</td>
+              </tr>
+            </tbody>
+          </table>
+    </div>
+
+
+    <div v-if="!VoteScoresDone"  class="host-container">
+        <h5>{{firstScoreQuestion}}</h5>
+    </div>
  
     
     <div v-if="!VoteScoresDone" class="scoreList-container">
@@ -49,6 +90,12 @@
     <div v-if="!VoteScoresDone" class="button-container">
         <button  @click="thisScoreDone">Done</button>
     </div>
+
+</div>
+    
+
+
+    
     
 
     <div v-if="isHost" class="buttonRight-container">
