@@ -414,7 +414,7 @@ async function register(registerDetails) {
   console.log("username :",username,"password :",password);
   if (username && password) {
       try {
-          const response = await handle_fatch('POST',"http://localhost:8181/player/register", username, password);
+          const response = await handle_fatch('POST',"https://cw111.azurewebsites.net/api/player/register", username, password);
           console.log("response is:", response.msg);
           return { response_message: response.msg, username };
       } catch (error) {
@@ -432,7 +432,7 @@ async function login(loginDetails) {
   console.log("username :",username,"password :",password);
   if (username && password) {
       try {
-          const response = await sendGetRequestWithBody("http://localhost:8181/player/login", username, password);
+          const response = await sendGetRequestWithBody("https://cw111.azurewebsites.net/api/player/login", username, password);
           console.log("response is:", response.msg);
           return { response_message: response.msg, username };
       } catch (error) {
@@ -448,7 +448,7 @@ async function handle_prompt(promptDetails){
   console.log("prompt : ",prompt,"username : ",username);
   if (username && prompt){
     try{
-      const response =await handleatchPrompt("http://localhost:8181/prompt/create",prompt,username);
+      const response =await handleatchPrompt("https://cw111.azurewebsites.net/api/prompt/create",prompt,username);
       console.log("response is: ",response.msg);
       return response.msg;
     }catch (error) {
@@ -602,7 +602,7 @@ async function getPrompts(language){
       for (let i = 0; i < promptsName.length&&promptLeft>0; i++) {
 
         const response = await sendGetPrompt(
-          "http://localhost:8181/utils/get",
+          "https://cw111.azurewebsites.net/api/utils/get",
           promptsName[i],
           language
         );
@@ -722,7 +722,7 @@ async function sendGetPrompt(endpoint, username, language) {
 
 
 async function handleFatchUpdate(username, addToGamesPlayed, addToScore) {
-  const url = "http://localhost:8181/player/update";
+  const url = "https://cw111.azurewebsites.net/api/player/update";
   const apiKey = "jLncRoiYHvcqdgXVSKmMGKSpSpPSDRxgLS-WI5jJASR4AzFujfBAdQ==";
   const payload = {
       username: username,
@@ -757,7 +757,7 @@ async function handleFatchUpdate(username, addToGamesPlayed, addToScore) {
 
 
 async function fetchPodiumData() {
-  const url = "http://localhost:8181/utils/podium";
+  const url = "https://cw111.azurewebsites.net/api/utils/podium";
   const apiKey = "jLncRoiYHvcqdgXVSKmMGKSpSpPSDRxgLS-WI5jJASR4AzFujfBAdQ==";
 
   try {
