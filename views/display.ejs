@@ -13,7 +13,7 @@
             <div class="host-container">
                 <h4> Waiting for everyone to join!</h4>
                 <a href="https://quiplash-cloud.nw.r.appspot.com/" class="join-link">Start Now</a>
-                <h5> players</h5>
+                <h5>{{playersNumber}} players have joined</h5>
             </div>
             <ul class="players-list">
                 <li v-for="(player, index) in players" :key="index">
@@ -21,7 +21,7 @@
                 </li>
             </ul>
             <div class="host-container">
-                <h5> Audience</h5>
+                <h5>{{audiencesNumber}} Audiences have joined</h5>
             </div>
             <ul class="players-list">
                 <li v-for="(audience, index) in audiences" :key="index">

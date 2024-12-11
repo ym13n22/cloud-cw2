@@ -16,7 +16,9 @@ var app = new Vue({
         promptMessage:'',
         hostName: '',
         players: [],
+        playersNumber:0,
         audiences:[],
+        audiencesNumber:0,
         prompt:'',
         prompt_asked:'',
         promptSubmitted:false,
@@ -344,6 +346,8 @@ function connect() {
         app.hostName=hostName;
         app.players=players_now;
         app.audiences=audience_now;
+        app.playersNumber=app.players.length;
+        app.audiencesNumber=app.audiences.length;
         if(roundNumber_now==1){
             app.roundTitle='Round 1';
         }

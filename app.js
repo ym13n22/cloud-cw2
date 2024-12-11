@@ -7,6 +7,7 @@ const app = express();
 
 //Setup socket.io
 const https = require('https');
+const http=require('http');
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const game_state_now="waiting";
@@ -114,10 +115,13 @@ io.on('connection', socket => {
   socket.on('login', async loginDetails =>{
     console.log(`Login event with ${JSON.stringify(loginDetails)}`);
     try{
-      const {response_message,username}=await login(loginDetails);
+      let {response_message,username}=await login(loginDetails);
       console.log("login message is:",response_message);
       console.log("username is: ",username);
       console.log("players.length: ",players.length);
+      if(response_message==''){
+        response_message="OK";
+      }
       
       if(response_message=="OK"&&!players.includes(username)&&!audience.includes(username)){
         if(currentStage=='Auth'&&players.length<8){///要改成8
@@ -127,6 +131,7 @@ io.on('connection', socket => {
         }
         
       }
+      console.log("players now: ",players);
       console.log("audience now: ",audience);
       console.log('currentStage is: ',currentStage);
       if(currentStage=='Voting'){
@@ -205,6 +210,7 @@ io.on('connection', socket => {
   })
 
   socket.on('answerSubmitted',answerDetails=>{
+    console.log('answerDetails: ',answerDetails);
     const {username,question,answer}=answerDetails;
     const target=promptAndAnswers[question]
     if(!target){
@@ -375,7 +381,7 @@ async function register(registerDetails) {
   console.log("username :",username,"password :",password);
   if (username && password) {
       try {
-          const response = await handle_fatch('POST',"https://cw111.azurewebsites.net/api/player/register", username, password);
+          const response = await handle_fatch('POST',"http://localhost:8181/player/register", username, password);
           console.log("response is:", response.msg);
           return { response_message: response.msg, username };
       } catch (error) {
@@ -393,7 +399,7 @@ async function login(loginDetails) {
   console.log("username :",username,"password :",password);
   if (username && password) {
       try {
-          const response = await sendGetRequestWithBody("https://cw111.azurewebsites.net/api/player/login", username, password);
+          const response = await sendGetRequestWithBody("http://localhost:8181/player/login", username, password);
           console.log("response is:", response.msg);
           return { response_message: response.msg, username };
       } catch (error) {
@@ -409,7 +415,7 @@ async function handle_prompt(promptDetails){
   console.log("prompt : ",prompt,"username : ",username);
   if (username && prompt){
     try{
-      const response =await handleatchPrompt("https://cw111.azurewebsites.net/api/prompt/create",prompt,username);
+      const response =await handleatchPrompt("http://localhost:8181/prompt/create",prompt,username);
       console.log("response is: ",response.msg);
       return response.msg;
     }catch (error) {
@@ -439,75 +445,55 @@ async function handle_fatch(method,endpoint, username, password) {
 }
 
 function sendGetRequestWithBody(endpoint, username, password) {
-  // Prepare the payload
-  const payload = JSON.stringify({
-      username: username,
-      password: password
-  });
+  // 将 username 和 password 构造成 JSON 字符串（仿照 curl 的 -d 参数）
+  const payload = JSON.stringify({ username, password });
 
-  // Parse the URL to extract hostname and path
+  // 解析 URL 以确保可以正确使用 http.request
   const url = new URL(endpoint);
 
-  // Define request options
   const options = {
       hostname: url.hostname,
+      port: url.port || 80, // 默认使用 80 端口
       path: url.pathname,
-      method: 'GET',
+      method: 'GET', // 方法是 GET
       headers: {
           'Content-Type': 'application/json',
-          'x-functions-key': 'jLncRoiYHvcqdgXVSKmMGKSpSpPSDRxgLS-WI5jJASR4AzFujfBAdQ==',
-          'Content-Length': Buffer.byteLength(payload)
-      }
+          'x-functions-key': 'jLncRoiYHvcqdgXVSKmMGKSpSpPSDRxgLS-WI5jJASR4AzFujfBAdQ==', // 必须正确无误
+          'Content-Length': Buffer.byteLength(payload), // 设置正确的请求体长度
+      },
   };
 
   return new Promise((resolve, reject) => {
-      console.log('Sending request with options:', options); // Log request details
-
-      // Create the request
-      const req = https.request(options, (res) => {
+      const req = http.request(options, (res) => {
           let data = '';
 
-          console.log(`Response status: ${res.statusCode}`); // Log status code
+          console.log(`Response status: ${res.statusCode}`);
 
-          // Collect response data
+          // 收集数据
           res.on('data', (chunk) => {
               data += chunk;
           });
 
-          // Resolve the promise on end
+          // 请求完成时处理结果
           res.on('end', () => {
-              console.log('Raw response body:', data); // Log raw response
-
-              if (res.statusCode === 200) {
-                  try {
-                      const jsonResponse = JSON.parse(data);
-                      console.log('Parsed JSON response:', jsonResponse); // Log parsed JSON
-                      resolve(jsonResponse);
-                  } catch (e) {
-                      console.error('Error parsing JSON response:', e.message); // Log JSON parsing error
-                      reject({ error: 'Failed to parse JSON', details: e.message });
-                  }
-              } else {
-                  console.error('Non-200 status received, response body:', data); // Log error details
-                  reject({
-                      error: `Request failed with status ${res.statusCode}`,
-                      details: data
-                  });
+              try {
+                  const jsonResponse = JSON.parse(data);
+                  resolve(jsonResponse); // 成功返回 JSON 响应
+              } catch (err) {
+                  reject({ error: 'Failed to parse JSON response', details: err.message });
               }
           });
       });
 
-      // Handle errors
-      req.on('error', (e) => {
-          console.error('Request error:', e.message); // Log request errors
-          reject({ error: e.message });
+      // 处理错误
+      req.on('error', (err) => {
+          console.error('Request error:', err.message);
+          reject({ error: 'Request failed', details: err.message });
       });
 
-      // Write the payload to the request body
+      // 写入 payload 到请求体中
       req.write(payload);
-
-      // End the request
-      req.end();
+      req.end(); // 结束请求
   });
 }
 
@@ -552,7 +538,7 @@ async function getPrompts(language){
   
     console.log("promptNumber is : ",promptNumber);
 
-    const prompt_get=[];
+    let prompt_get=[];
     if (promptNumber / 2 > prompts.length) {
       for (const prompt of prompts) {
         if (!prompt_get.includes(prompt)) {
@@ -560,102 +546,48 @@ async function getPrompts(language){
         }
     }
   
-      const promptLeft = promptNumber - prompt_get.length;
-
-      for (let i = 0; i < promptLeft; i++) {
-        let responseIndex = 0; // 初始化 response 的索引
-        let foundUniquePrompt = false; // 用于标记是否找到唯一的 prompt
-    
-        while (!foundUniquePrompt) {
-            // 获取当前的 response
-            const response = await sendGetPrompt(
-                "https://cw111.azurewebsites.net/api/utils/get",
-                promptsName[i],
-                language
-            );
-    
-            // 检查当前索引是否超出 response 数组范围
-            if (responseIndex >= response.length) {
-                // 如果超出范围，切换到下一个 prompt 名字
-                if (i + 1 >= promptLeft) {
-                    console.error("Error: No unique prompts found in the remaining prompts.");
-                    break;
-                }
-                i++; // 跳到下一个 prompt
-                responseIndex = 0; // 重置索引
-                continue;
-            }
-    
-            // 提取当前索引的文本
-            const currentPrompt = response[responseIndex]?.text;
-    
-            if (currentPrompt && !prompt_get.includes(currentPrompt)) {
-                // 如果当前 prompt 不在 prompt_get 中，添加到列表
-                prompt_get.push(currentPrompt);
-                foundUniquePrompt = true; // 结束当前循环
-            } else {
-                // 如果在 prompt_get 中，检查下一个 response
-                responseIndex++;
-            }
-        }
-    }
   } else {
 
-      let getFromPrompt = Math.floor(promptNumber / 2); 
-      const getFromDB = promptNumber - getFromPrompt;   
+      let getFromPrompt = Math.ceil(promptNumber / 2); 
+      const getFromDB = promptNumber - getFromPrompt;
+      console.log('getFromPrompt ', getFromPrompt);
+      console.log('getFromDB ',getFromDB);   
   
      
       for (let i = 0; i < prompts.length && getFromPrompt > 0; i++) {
-        while (prompt_get.includes(prompts[i]) && i < prompts.length - 1) {
-            i++;
-        }
         if (!prompt_get.includes(prompts[i])) {
             prompt_get.push(prompts[i]);
+            console.log('prompt_get.push',prompts[i])
             getFromPrompt--;
-        }
-    }
-  
-  
-      for (let i = 0; i < getFromDB; i++) {
-        let responseIndex = 0; // 初始化 response 的索引
-        let foundUniquePrompt = false; // 用于标记是否找到唯一的 prompt
-    
-        while (!foundUniquePrompt) {
-            // 获取当前的 response
-            const response = await sendGetPrompt(
-                "https://cw111.azurewebsites.net/api/utils/get",
-                promptsName[i],
-                language
-            );
-    
-            // 检查当前索引是否超出 response 数组范围
-            if (responseIndex >= response.length) {
-                // 如果超出范围，切换到下一个 prompt 名字
-                if (i + 1 >= getFromDB) {
-                    console.error("Error: No unique prompts found in the remaining prompts.");
-                    break;
-                }
-                i++; // 跳到下一个 prompt
-                responseIndex = 0; // 重置索引
-                continue;
-            }
-    
-            // 提取当前索引的文本
-            const currentPrompt = response[responseIndex]?.text;
-    
-            if (currentPrompt && !prompt_get.includes(currentPrompt)) {
-                // 如果当前 prompt 不在 prompt_get 中，添加到列表
-                prompt_get.push(currentPrompt);
-                foundUniquePrompt = true; // 结束当前循环
-            } else {
-                // 如果在 prompt_get 中，检查下一个 response
-                responseIndex++;
-            }
         }
     }
       
       
   }
+  let promptLeft = promptNumber - prompt_get.length;
+
+      for (let i = 0; i < promptsName.length&&promptLeft>0; i++) {
+
+        const response = await sendGetPrompt(
+          "http://localhost:8181/utils/get",
+          promptsName[i],
+          language
+        );
+        console.log('response ',response)
+
+        for(let responseIndex=0;responseIndex<response.length;responseIndex++){
+          const currentPrompt = response[responseIndex].text;
+          console.log('currentPrompt',currentPrompt)
+          if(!prompt_get.includes(currentPrompt)){
+            prompt_get.push(currentPrompt);
+            promptLeft--;
+          }
+        }
+    
+    }
+    if(prompt_get.length>promptNumber){
+      prompt_get = prompt_get.slice(0, promptNumber);
+    }
   console.log("prompt_get : ",prompt_get);
   return prompt_get; 
     
@@ -702,82 +634,62 @@ async function assignPrompt(language) {
 
 
 
-function sendGetPrompt(endpoint, username, language) {
-  // Prepare the payload
-  const payload = JSON.stringify({
-    players: [username],
-    language: language
-  });
+async function sendGetPrompt(endpoint, username, language) {
+  /// 将 username 和 password 构造成 JSON 字符串（仿照 curl 的 -d 参数）
+  const payload = JSON.stringify({players: [username],language:language });
 
-  // Parse the URL to extract hostname and path
+  // 解析 URL 以确保可以正确使用 http.request
   const url = new URL(endpoint);
 
-  // Define request options
   const options = {
       hostname: url.hostname,
+      port: url.port || 80, // 默认使用 80 端口
       path: url.pathname,
-      method: 'GET',
+      method: 'GET', // 方法是 GET
       headers: {
           'Content-Type': 'application/json',
-          'x-functions-key': 'jLncRoiYHvcqdgXVSKmMGKSpSpPSDRxgLS-WI5jJASR4AzFujfBAdQ==',
-          'Content-Length': Buffer.byteLength(payload)
-      }
+          'x-functions-key': 'jLncRoiYHvcqdgXVSKmMGKSpSpPSDRxgLS-WI5jJASR4AzFujfBAdQ==', // 必须正确无误
+          'Content-Length': Buffer.byteLength(payload), // 设置正确的请求体长度
+      },
   };
 
   return new Promise((resolve, reject) => {
-      console.log('Sending request with options:', options); // Log request details
-
-      // Create the request
-      const req = https.request(options, (res) => {
+      const req = http.request(options, (res) => {
           let data = '';
 
-          console.log(`Response status: ${res.statusCode}`); // Log status code
+          console.log(`Response status: ${res.statusCode}`);
 
-          // Collect response data
+          // 收集数据
           res.on('data', (chunk) => {
               data += chunk;
           });
 
-          // Resolve the promise on end
+          // 请求完成时处理结果
           res.on('end', () => {
-              console.log('Raw response body:', data); // Log raw response
-
-              if (res.statusCode === 200) {
-                  try {
-                      const jsonResponse = JSON.parse(data);
-                      console.log('Parsed JSON response:', jsonResponse); // Log parsed JSON
-                      resolve(jsonResponse);
-                  } catch (e) {
-                      console.error('Error parsing JSON response:', e.message); // Log JSON parsing error
-                      reject({ error: 'Failed to parse JSON', details: e.message });
-                  }
-              } else {
-                  console.error('Non-200 status received, response body:', data); // Log error details
-                  reject({
-                      error: `Request failed with status ${res.statusCode}`,
-                      details: data
-                  });
+              try {
+                  const jsonResponse = JSON.parse(data);
+                  resolve(jsonResponse); // 成功返回 JSON 响应
+              } catch (err) {
+                  reject({ error: 'Failed to parse JSON response', details: err.message });
               }
           });
       });
 
-      // Handle errors
-      req.on('error', (e) => {
-          console.error('Request error:', e.message); // Log request errors
-          reject({ error: e.message });
+      // 处理错误
+      req.on('error', (err) => {
+          console.error('Request error:', err.message);
+          reject({ error: 'Request failed', details: err.message });
       });
 
-      // Write the payload to the request body
+      // 写入 payload 到请求体中
       req.write(payload);
-
-      // End the request
-      req.end();
+      req.end(); // 结束请求
   });
 }
 
 
 async function handleFatchUpdate(username, addToGamesPlayed, addToScore) {
-  const url = "https://cw111.azurewebsites.net/api/player/update";
+  const url = "http://localhost:8181/player/update";
   const apiKey = "jLncRoiYHvcqdgXVSKmMGKSpSpPSDRxgLS-WI5jJASR4AzFujfBAdQ==";
   const payload = {
       username: username,
@@ -812,7 +724,7 @@ async function handleFatchUpdate(username, addToGamesPlayed, addToScore) {
 
 
 async function fetchPodiumData() {
-  const url = "https://cw111.azurewebsites.net/api/utils/podium";
+  const url = "http://localhost:8181/utils/podium";
   const apiKey = "jLncRoiYHvcqdgXVSKmMGKSpSpPSDRxgLS-WI5jJASR4AzFujfBAdQ==";
 
   try {
