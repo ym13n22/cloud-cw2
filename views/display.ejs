@@ -12,9 +12,19 @@
             </ul>
             <div class="host-container">
                 <h4> Waiting for everyone to join!</h4>
-                <a href="https://quiplash-cloud.nw.r.appspot.com/" class="join-link">Start Now</a>
+                <a id="start-link" href="#" class="join-link">Start Now</a>
                 <h5>{{playersNumber}} players have joined</h5>
             </div>
+            <script>
+                // 获取当前页面的 URL
+                const currentUrl = window.location.href;
+            
+                // 去掉 '/display' 的部分
+                const newUrl = currentUrl.replace(/\/display$/, '');
+            
+                // 设置链接的 href 属性
+                document.getElementById('start-link').href = newUrl;
+            </script>
             <ul class="players-list">
                 <li v-for="(player, index) in players" :key="index">
                     {{ player }}

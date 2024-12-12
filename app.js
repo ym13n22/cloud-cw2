@@ -25,6 +25,7 @@ let answerSubmittedDisplay=[];//一轮结束删
 let awaitingAnswer=[];
 let votedDoneDisplay=[];
 let roundScoresRecord={};
+let promptAndAnswersCopy={}
 
 //Setup static page handling
 app.set('view engine', 'ejs');
@@ -89,7 +90,8 @@ io.on('connection', socket => {
       }
       console.log('currentStage is: ',currentStage);
       if(currentStage=='Voting'){
-        io.emit('startVoting',promptAndAnswers);
+        io.emit('startVoting',promptAndAnswersCopy);
+        console.log('startVotiing',promptAndAnswersCopy);
       }
       if(currentStage=='RoundScores'){
         io.emit('sendScores',promptAndAnswers);
@@ -242,7 +244,8 @@ io.on('connection', socket => {
       if(awaitingAnswer.length==0){
         currentStage='Voting'
         console.log("promptAndAnswer: ",promptAndAnswers);
-        io.emit('startVoting',promptAndAnswers);
+        promptAndAnswersCopy = structuredClone(promptAndAnswers);
+        io.emit('startVoting',promptAndAnswersCopy);
         console.log('players ',players);
         players.forEach(p => {
           if (roundScoresRecord[p] === undefined) {
@@ -256,7 +259,8 @@ io.on('connection', socket => {
   socket.on('startVoting',()=>{
     currentStage='Voting'
     console.log("promptAndAnswer: ",promptAndAnswers);
-    io.emit('startVoting',promptAndAnswers);
+    promptAndAnswersCopy = structuredClone(promptAndAnswers);
+    io.emit('startVoting',promptAndAnswersCopy);
     console.log('players ',players);
     players.forEach(p => {
       if (roundScoresRecord[p] === undefined) {
@@ -317,6 +321,7 @@ io.on('connection', socket => {
     if(!addedQuestions.includes(question)){
       addedQuestions.push(question)
       if(nameWin!=''){
+        console.log('winScoreFatch ',(nameWin,100*roundNumber))
         const response=await handleFatchUpdate(nameWin,0,100*roundNumber); 
         console.log('resposne for store scores are: ',response.msg);
         if(nameLose!=''){
@@ -338,6 +343,7 @@ io.on('connection', socket => {
     if(roundNumber<3){
       prompts=[];
       promptAndAnswers={};
+      promptAndAnswersCopy={}
       addedQuestions=[];
       roundNumber=roundNumber+1;
       promptSubmittedDisplay=[];
@@ -364,6 +370,7 @@ io.on('connection', socket => {
       players=[];
       audience=[];
       promptAndAnswers={};
+      promptAndAnswersCopy={};
       promptSubmittedDisplay=[];
       answerSubmittedDisplay=[];
       awaitingAnswer=[];
